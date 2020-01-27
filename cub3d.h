@@ -53,6 +53,12 @@ typedef struct	s_player
 	double		plane_y;
 	//player stats
 	int			h;//h modifier for render (jump and crawl)
+	int			moving_forward;
+	int			moving_backward;
+	int			moving_left;
+	int			moving_right;
+	int			rotating_right;
+	int			rotating_left;
 	double		mov_speed;// = frameTime * 5.0; //the constant value is in squares/second
     double		rot_speed;// = frameTime * 3.0; //the constant value is in radians/second
 }				t_player;
@@ -127,6 +133,8 @@ void			ft_step_calc(t_ray *ray, t_player *player);
 
 int				ft_loop_hook(void *params);
 int				ft_key_hook(int keycode, void *params);
+int				ft_key_release_hook(int keycode, void *params);
+void			ft_check_movement(t_data *data, int keycode, int state);
 
 int				ft_get_map(char *map, t_data *data);
 int				ft_check_line(int *line, int **tab, char *str, t_data *data);

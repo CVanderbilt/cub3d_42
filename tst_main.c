@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/17 10:43:11 by eherrero          #+#    #+#             */
-/*   Updated: 2020/01/24 20:50:54 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/01/27 11:37:03 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,8 +65,14 @@ void	ft_init_texture(t_mlx *mlx, t_texture *tex, char *path)
 
 void	ft_init_mlx(t_data *data, char *map_name)
 {
-	t_mlx *mlx;
+	t_mlx	*mlx;
+	int		bpp;
+	int		endian;
+	int		size_line;
 
+	endian = 1;
+	bpp = 4;
+	size_line = 500 * 4;
 	mlx = data->mlx;
 	printf("init_mlx: %p\n", mlx);
 	//lx_new_image ( void *mlx_ptr, int width, int height
@@ -77,7 +83,8 @@ void	ft_init_mlx(t_data *data, char *map_name)
 	//mlx->y = 500;
 	mlx->ptr = mlx_init();
 	mlx->screen = mlx_new_image(mlx->ptr, mlx->x, mlx->y);
-	//mlx->screen_data = mlx_get_data_addr(
+	//mlx_get_data_addr ( void *img_ptr, int *bits_per_pixel, int *size_line, int *endian )
+	mlx->screen_data = mlx_get_data_addr(mlx->screen, &bpp, &size_line, &endian);
 	//mlx->n_img = mlx_new_image(mlx->ptr, 32, 32);
 	//mlx_xpm_file_to_image ( void *mlx_ptr, char *filename, int *width, int *height );
 	
@@ -135,7 +142,8 @@ void	ft_loop(t_data *data)
 	//mlx_key_hook(mlx->window, ft_key_hook, data);
 	mlx_hook(mlx->window, 2, 1, ft_key_hook, data);
 	//mlx_int_param_KeyRelease(mlx->window, ft_key_release_hook, data);
-	//mlx_hook(mlx->window, 3, 0, ft_key_release_hook, data);
+	mlx_hook(mlx->window, 3, 0, ft_key_release_hook, data);
+	mlx_loop_hook(mlx->ptr, ft_loop_hook, data);
 	printf("loop\n");
 	mlx_loop(mlx->ptr);
 }
@@ -145,7 +153,7 @@ int main(int argc, char **argv)
 	t_data		data;
 	t_player	*p;
 
-	ft_init_data(&data, "map.cub", 0.1, 0.5);
+	ft_init_data(&data, "map.cub", 0.05, 0.1);
 	//printf("alpha %f\n", (data.player)->alpha);
 	(data.player)->kk = 0;
 	p = data.player;

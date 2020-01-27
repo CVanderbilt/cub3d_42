@@ -56,8 +56,105 @@ void	ft_print_map(t_data *data)
 //mlx_int_param_KeyRelease
 int		ft_key_release_hook(int keycode, void *params)
 {
-	printf("this works\n");
+	printf("released keycode: %d\n", keycode);
+	ft_check_movement((t_data *)params, keycode, 0);
 	return (0);
+}
+
+void	ft_print_states(t_player *player)
+{
+	printf("mov forward: %d\n", player->moving_forward);
+	printf("mov backward: %d\n", player->moving_backward);
+}
+
+void	ft_check_movement(t_data *data, int keycode, int state)
+{
+	printf(" state: %d\n", state);
+	printf(" keycode: %d\n", keycode);
+	if (keycode == 13)
+		data->player->moving_forward = state;
+	if (keycode == 1)
+		data->player->moving_backward = state;
+	if (keycode == 124)
+		data->player->rotating_left = state;
+	if (keycode == 123)
+		data->player->rotating_right = state;
+	if (keycode == 0)
+		data->player->moving_right = state;
+	if (keycode == 2)
+		data->player->moving_left = state;
+
+	ft_print_states(data->player);
+}
+
+void	ft_move(t_data *data, t_player *player)
+{
+	float	step;
+	float	a;
+
+	step = player->mov_speed;
+	//step = 1;
+	a = player->rot_speed;
+	//a = 0.157;
+	if (player->moving_forward)
+	{
+		printf("deberia moverse\n");
+		if (!data->map[(int)(player->x + player->dir_x * step)][(int)(player->y)])
+			player->x += player->dir_x * step;
+		if (!data->map[(int)(player->x)][(int)(player->y + player->dir_y * step)])
+			player->y += player->dir_y * step;
+	}
+	if (player->moving_backward)
+	{
+		if (!data->map[(int)(player->x - player->dir_x * step)][(int)(player->y)])
+			player->x -= player->dir_x * step;
+		if (!data->map[(int)(player->x)][(int)(player->y - player->dir_y * step)])
+			player->y -= player->dir_y * step;
+	}
+	if (player->moving_right)
+	{
+		if(!data->map[(int)(player->x - player->dir_y * step)][(int)(player->y)])
+			player->x -= player->dir_y * step;
+		if(!data->map[(int)(player->x)][(int)(player->y + player->dir_x * step)])
+			player->y += player->dir_x * step;
+	}
+	if (player->moving_left)
+	{
+		if(!data->map[(int)(player->x + player->dir_y * step)][(int)(player->y)])
+			player->x += player->dir_y * step;
+		if(!data->map[(int)(player->x)][(int)(player->y - player->dir_x * step)])
+			player->y -= player->dir_x * step;
+	}
+	if	(player->rotating_right)
+	{
+		player->x2 = player->dir_x;
+		player->dir_x = player->dir_x * cos(a) - player->dir_y * sin(a);
+		player->dir_y = player->x2 * sin(a) + player->dir_y * cos(a);
+		player->x2 = player->plane_x;
+		player->plane_x = player->plane_x * cos(a) - player->plane_y * sin(a);
+		player->plane_y = player->x2 * sin(a) + player->plane_y * cos(a);
+	}
+	if (player->rotating_left)
+	{
+		a *= -1;
+		player->x2 = player->dir_x;
+		player->dir_x = player->dir_x * cos(a) - player->dir_y * sin(a);
+		player->dir_y = player->x2 * sin(a) + player->dir_y * cos(a);
+		player->x2 = player->plane_x;
+		player->plane_x = player->plane_x * cos(a) - player->plane_y * sin(a);
+		player->plane_y = player->x2 * sin(a) + player->plane_y * cos(a);
+	}
+
+	if (player->alpha >2 * M_PI)
+		player->alpha -= 2 * M_PI;
+	else if (player->alpha < 0)
+		player->alpha += 2 * M_PI;
+	printf("(x, y) (%f, %f)\n", player->x, player->y);
+	printf("dir(x, y) (%f, %f)\n", player->dir_x, player->dir_y);
+	printf("alpha: %f\n", player->alpha);
+	printf("plane_x %f plane_y %f\n", player->plane_x, player->plane_y);
+
+
 }
 
 int		ft_loop_hook(void *params)
@@ -68,10 +165,20 @@ int		ft_loop_hook(void *params)
 	data = (t_data *)params;
 	mlx = data->mlx;
 	mlx_clear_window (mlx->ptr, mlx->window);
+
+	ft_move(data, data->player);
+
 	return (ft_render(data, data->mlx, data->player, data->map));
 }
 
-int		ft_key_hook(int keycode, void *params)
+int			ft_key_hook(int keycode, void *params)
+{
+	printf("pressed keycode: %d\n", keycode);
+	ft_check_movement((t_data *)params, keycode, 1);
+	return (0);
+}
+
+/*int		ft_key_hook(int keycode, void *params)
 {
 	t_data		*data;
 	t_player	*player;
@@ -112,42 +219,10 @@ int		ft_key_hook(int keycode, void *params)
 		if(!data->map[(int)(player->x)][(int)(player->y - player->dir_y * step)])
 			player->y -= player->dir_y * step;
 	}
-	/*
-	if (keycode == 124)
-	{
-		new_vector[0] = player->dir_y;
-		new_vector[1] = player->dir_x * -1;
-		printf("move at dir_x %f dir_y %f\n", new_vector[0], new_vector[1]);
-		player->x += new_vector[0] * 1.1;
-		player->y += new_vector[1] * 1.1;
-	}
-
-	if (keycode == 123)
-	{
-		new_vector[0] = player->dir_y;
-		new_vector[1] = player->dir_x;
-		printf("move at dir_x %f dir_y %f\n", new_vector[0], new_vector[1]);
-		player->y += player->dir_x * 1.1;
-		player->x += player->dir_y * 1.1;
-	}
-	*/
-	//x' = x cos θ − y sin θ
+		//x' = x cos θ − y sin θ
 	//y' = x sin θ + y cos θ
 	if (keycode == 123)//124)
 	{
-		//player->x += player->dir_y * 1.1;
-		//player->y += player->dir_x * 1.1;
-		//player->x2 = player->dir_x * cos(a) - player->dir_y * sin(a);
-		//player->y2 = player->dir_x * sin(a) + player->dir_y * cos(a);
-		/*
-		player->x2 = player->alpha;
-		player->y2 = player->plane_x;
-		player->alpha += a;
-		player->dir_x = cos(player->alpha);
-		player->dir_y = sin(player->alpha);
-		player->plane_x = player->plane_x * cos(a) - player->plane_y * cos(a);
-		player->plane_y = player->x2 * sin(a) + player->plane_y * cos(a);
-*/
 		//both camera direction and camera plane must be rotated
 		player->x2 = player->dir_x;
 		player->dir_x = player->dir_x * cos(a) - player->dir_y * sin(a);
@@ -155,36 +230,10 @@ int		ft_key_hook(int keycode, void *params)
 		player->x2 = player->plane_x;
 		player->plane_x = player->plane_x * cos(a) - player->plane_y * sin(a);
 		player->plane_y = player->x2 * sin(a) + player->plane_y * cos(a);
-
-/*double oldDirX = dirX;
-dirX = dirX * cos(rotSpeed) - dirY * sin(rotSpeed);
-dirY = oldDirX * sin(rotSpeed) + dirY * cos(rotSpeed);
-double oldPlaneX = planeX;
-planeX = planeX * cos(rotSpeed) - planeY * sin(rotSpeed);
-planeY = oldPlaneX * sin(rotSpeed) + planeY * cos(rotSpeed);*/
-
-
-
-
 	}
 	
 	if (keycode == 124)//123)
 	{
-		//player->x += player->dir_y * -1.1;
-		//player->y += player->dir_x * -1.1;
-		//player->x2 = player->dir_x * cos(a) - player->dir_y * sin(a);
-		//player->y2 = player->dir_x * sin(a) + player->dir_y * cos(a);
-/*		
-		a *= -1;
-		player->x2 = player->alpha;
-		player->y2 = player->plane_x;
-		player->alpha += a;
-		player->dir_x = cos(player->alpha);
-		player->dir_y = sin(player->alpha);
-		player->plane_x = player->plane_x * cos(a) - player->plane_y * cos(a);
-		player->plane_y = player->x2 * sin(a) + player->plane_y * cos(a);
-	*/	
-
 		//both camera direction and camera plane must be rotated
 		a *= -1;
 		player->x2 = player->dir_x;
@@ -206,10 +255,6 @@ planeY = oldPlaneX * sin(rotSpeed) + planeY * cos(rotSpeed);*/
 
 	if (keycode == 0)
 	{
-
-//params->pl->pos_y += params->pl->dir_x * speed;
-//		params->pl->pos_x -= params->pl->dir_y * speed;
-
 		if(!data->map[(int)(player->x - player->dir_y * step)][(int)(player->y)])
 			player->x -= player->dir_y * step;
 		if(!data->map[(int)(player->x)][(int)(player->y + player->dir_x * step)])
@@ -242,7 +287,7 @@ planeY = oldPlaneX * sin(rotSpeed) + planeY * cos(rotSpeed);*/
 	}
 	//printf("\n\n");
 	return (0);
-}
+}*/
 /*
 int		main(void)
 {

@@ -91,7 +91,9 @@ void	ft_paint_col(t_ray *ray, t_data *data)
 	t_player	*player = data->player;
 	t_texture	*tex;
 	t_paint_col	ft;
+	int			*img;
 
+	img = (int *)mlx->screen_data;
 	ft.line_height = (int)(mlx->y / ray->perp_wall_dist);
 	tex = ft_switch_texture(data, ray);
 	//tex = data->mlx->n_img;
@@ -114,6 +116,14 @@ void	ft_paint_col(t_ray *ray, t_data *data)
 		ft.tex_x = tex->width - ft.tex_x - 1;
 	ft.step = 1.0 * tex->height / ft.line_height;
 	ft.tex_pos = (ft.draw_start - mlx->y / 2 + ft.line_height / 2) * ft.step;
+	int y = 0;
+	while (y < ft.draw_start)
+	{
+		//printf("techo y: %d\n", y);
+		//mlx_pixel_put(mlx->ptr, mlx->window, ray->col, y, 6579300);
+		img[ray->col + y * data->res_y] = 6579300;
+		y++;
+	}
 	for(int y = ft.draw_start; y < ft.draw_end; y++)
 	{
 		ft.tex_y = (int)ft.tex_pos & (tex->height - 1);
@@ -121,7 +131,16 @@ void	ft_paint_col(t_ray *ray, t_data *data)
 		//printf("busca en %p\n height %d * tex_y %d + tex_x %d\n", tex->addr, tex->height, ft.tex_y, ft.tex_x);
 		//exit(0);
 		ft.color = tex->addr[tex->height * ft.tex_y + ft.tex_x];
-		mlx_pixel_put(mlx->ptr, mlx->window, ray->col, y, ft.color);
+		//mlx_pixel_put(mlx->ptr, mlx->window, ray->col, y, ft.color);
+		img[ray->col + y * data->res_y] = ft.color;
+	}
+	y = ft.draw_end;
+	while (y < mlx->y)
+	{
+		//printf("suelo y: %d\n", y);
+		//mlx_pixel_put(mlx->ptr, mlx->window, ray->col, y, 6579300);
+		img[ray->col + y * data->res_y] = 6579300;
+		y++;
 	}
 }
 
@@ -192,6 +211,8 @@ int		ft_render(t_data *data, t_mlx *mlx, t_player *player, int **map)
 		ft_paint_col(&ray, data);
 		ray_col += 1;
 	}
+//	mlx_put_image_to_window ( void *mlx_ptr, void *win_ptr, void *img_ptr, int x, int y );
+	mlx_put_image_to_window(mlx->ptr, mlx->window, mlx->screen, 0, 0);
 	return (1);
 }
 /*
