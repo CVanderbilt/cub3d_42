@@ -31,6 +31,7 @@ typedef struct	s_mlx
 	t_texture	*s_img;
 	t_texture	*w_img;
 	t_texture	*e_img;
+	t_texture	*skybox;
 	char		*title;
 	int			x;
 	int			y;
@@ -45,7 +46,6 @@ typedef struct	s_player
 	double		x2;//aux
 	double		y2;//aux
 	//player dir.
-	double		alpha;//angulo entre 1,0 y la direccion
 	double		dir_x;
 	double		dir_y;
 	//camera plane.
@@ -112,7 +112,7 @@ typedef	struct	s_paint_col
 {
 	int			line_height;
 	int			color;
-	int			draw_start;
+	int			draw_s;
 	int			draw_end;
 	int			tex_x;
 	int			tex_y;
@@ -120,6 +120,26 @@ typedef	struct	s_paint_col
 	double		tex_pos;
 	double		wall_x;
 }				t_paint_col;
+
+typedef struct	s_check_line
+{
+	int			fd;
+	int			finished;
+	char		*str;
+}				t_check_line;
+
+typedef struct	s_check_map_line
+{
+	int			i;
+	int			count;
+	int			last_element;
+}				t_check_map_line;
+
+typedef struct	s_first_line_check
+{
+	int			i;
+	int			count;
+}				t_first_line_check;
 
 int				ft_render(t_data *data, t_mlx *mlx, t_player *player, int **map);
 int				ft_color_switch(t_ray *ray);

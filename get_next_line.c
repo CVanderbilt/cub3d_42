@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/12/16 11:06:05 by eherrero          #+#    #+#             */
-/*   Updated: 2020/01/16 15:20:58 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/01/27 15:06:28 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,7 +84,7 @@ int		get_next_line_rec(int fd, char **line)
 		return (-1);
 	pos = ft_get_pos(tmp->str, "\n\r");
 	if (pos >= 0)
-	return (!ft_aux(line, tmp, pos) ? -1 : 1);
+		return (!ft_aux(line, tmp, pos) ? -1 : 1);
 	while (tmp->open)
 	{
 		pos = read(fd, line_r, BUFFER_SIZE);
