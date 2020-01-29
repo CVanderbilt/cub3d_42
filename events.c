@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/27 14:53:37 by eherrero          #+#    #+#             */
-/*   Updated: 2020/01/28 19:22:27 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/01/29 15:01:47 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,15 +48,23 @@ int		ft_player_advance(t_data *data, int code, double step)
 {
 	t_player	*p;
 	int			mod;
+	double		safe_step;
+
 
 	mod = code == 1 || code == 3 ? -1 : 1;
+	safe_step =1; // mod * 0.001;
 	p = data->player;
 	if (code == 0 || code == 1)
 	{
-		if (!data->map[(int)(p->x + mod * p->dir_x * step)][(int)(p->y)])
+		if (!data->map[(int)(p->x + mod * (p->dir_x) * step)][(int)(p->y)])
+		{
+
 			p->x += mod * p->dir_x * step;
-		if (!data->map[(int)(p->x)][(int)(p->y + mod * p->dir_y * step)])
+		}
+		if (!data->map[(int)(p->x)][(int)(p->y + mod * (p->dir_y * safe_step) * step)])
+		{
 			p->y += mod * p->dir_y * step;
+		}
 	}
 	else if (code == 2 || code == 3)
 	{
@@ -104,9 +112,11 @@ int		ft_move(t_data *data, t_player *player)
 		moved += ft_player_rotate(player, a, 1);
 	if (moved)
 	{
+		/*
 		printf("(x, y) (%f, %f)\n", player->x, player->y);
 		printf("dir(x, y) (%f, %f)\n", player->dir_x, player->dir_y);
 		printf("plane_x %f plane_y %f\n", player->plane_x, player->plane_y);
+		//ft_render(data, data->mlx, data->player, data->map);*/
 	}
 	return (moved);
 }
@@ -119,12 +129,23 @@ int		ft_loop_hook(void *params)
 	static int frame;
 
 	data = (t_data *)params;
+	t_player	*player = data->player; 
 	mlx = data->mlx;
 	moved = ft_move(data, data->player);
 	//mlx_clear_window(mlx->ptr, mlx->window);
-	if (moved)
+//	if (moved)
 	{
-		printf("RENDER_START %d\n", frame);
+		//printf("RENDER_START %d\n", frame);
+		//printf("(x, y) (%f, %f)\n", player->x, player->y);
+		//printf("dir(x, y) (%f, %f)\n", player->dir_x, player->dir_y);
+		//printf("plane_x %f plane_y %f\n", player->plane_x, player->plane_y);
+		if ((player->dir_x == 1 || player->dir_x == -1) ||
+			(player->dir_y == 1 || player->dir_y == -1))
+			{
+				printf("ha corregido\n");
+				ft_player_rotate(player, player->rot_speed - 0.001, 0);
+			}
+
 		ft_render(data, data->mlx, data->player, data->map);
 	}
 	frame++;

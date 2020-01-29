@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/27 13:15:57 by eherrero          #+#    #+#             */
-/*   Updated: 2020/01/28 16:46:22 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/01/29 19:16:18 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -185,7 +185,7 @@ int				ft_check_s(char *str, t_data *data)
 	else if (str[1] == 'O' && ft_isspace(str[2]))
 		return (ft_set_dir_texture(str, 2, &(data->s_texture)));
 	if (ft_isspace(str[1]))
-		return (ft_set_dir_texture(str, 1, &(data->sprite_texture)));
+		return (ft_set_dir_texture(str, 1, &(data->sprite1)));
 	ft_cub_error();
 	return (0);
 }

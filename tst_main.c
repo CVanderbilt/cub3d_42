@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/17 10:43:11 by eherrero          #+#    #+#             */
-/*   Updated: 2020/01/28 20:28:53 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/01/29 19:14:07 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,13 @@ void	ft_init_player(t_player *player, double r_speed, double m_speed)
 	player->h = 0;
 	player->rot_speed = r_speed;
 	player->mov_speed = m_speed;
+
+	player->moving_forward = 0;
+	player->moving_backward = 0;
+	player->moving_left = 0;
+	player->moving_right = 0;
+	player->rotating_right = 0;
+	player->rotating_left = 0;
 }
 
 void	ft_init_texture(t_mlx *mlx, t_texture *t, char *path)
@@ -77,6 +84,7 @@ void	ft_init_textures(t_data *data)
 	mlx->w_img = (t_texture*)malloc(sizeof(t_texture));
 	mlx->e_img = (t_texture*)malloc(sizeof(t_texture));
 	mlx->skybox = (t_texture*)malloc(sizeof(t_texture));
+	mlx->sprite1 = (t_texture*)malloc(sizeof(t_texture));
 	if (!mlx->n_img || !mlx->s_img || !mlx->e_img || !mlx->w_img)
 		ft_memory_error();
 	ft_init_texture(mlx, mlx->n_img, "brick.xpm");
@@ -84,7 +92,18 @@ void	ft_init_textures(t_data *data)
 	ft_init_texture(mlx, mlx->e_img, "metal.xpm");
 	ft_init_texture(mlx, mlx->w_img, "wood.xpm");
 	ft_init_texture(mlx, mlx->skybox, "skybox.xpm");
+	ft_init_texture(mlx, mlx->sprite1, "sprite.xpm");
 }
+/*
+void	ft_init_sprites(t_data *data)
+{
+	sprites_num = 1;
+	sprites_id = (int*)malloc(sizeof(int) * sprites_num);
+	sprites = (t_sprite*)malloc(sizeof(t_sprite) * sprites_num);
+	sprites_id[0] = 0;
+	sprites[0].id = 0;	
+	sprites[0].texture = data->mlx->sprite1;	
+}*/
 
 void	ft_init_mlx(t_data *data, char *map_name)
 {
@@ -106,6 +125,7 @@ void	ft_init_mlx(t_data *data, char *map_name)
 	mlx->screen_data = mlx_get_data_addr(mlx->screen, &bpp, &size_line, &e);
 	printf("textures\n");
 	ft_init_textures(data);
+	//ft_init_sprites(data);
 	if (!mlx->ptr)
 		ft_memory_error();
 	if (!(mlx->window = mlx_new_window(mlx->ptr, mlx->x, mlx->y, map_name)))
@@ -118,8 +138,8 @@ void	ft_init_data(t_data *data, char *map_name, double rsp, double msp)
 	t_mlx		*mlx;
 
 	printf("init_data\n");
-	player = (t_player *)malloc(sizeof(t_player));
-	mlx = (t_mlx *)malloc(sizeof(t_mlx));
+	player = (t_player*)malloc(sizeof(t_player));
+	mlx = (t_mlx*)malloc(sizeof(t_mlx));
 	if (!player || !mlx)
 		ft_memory_error();
 	data->player = player;
@@ -127,6 +147,9 @@ void	ft_init_data(t_data *data, char *map_name, double rsp, double msp)
 	ft_init_player(player, rsp, msp);
 	printf("get_map\n");
 	ft_get_map(map_name, data);
+	data->buffer_z = (double*)malloc(data->res_x * sizeof(double));
+	if (!data->buffer_z)
+		ft_memory_error();
 	ft_init_mlx(data, map_name);
 }
 
@@ -147,7 +170,7 @@ int		main(int argc, char **argv)
 	t_data		data;
 	t_player	*p;
 
-	ft_init_data(&data, "map.cub", 0.05, 0.1);
+	ft_init_data(&data, "map.cub", 0.02, 0.1);
 	(data.player)->kk = 0;
 	p = data.player;
 	printf("Rot_speed: %f\nMov_speed: %f\n", p->rot_speed, p->mov_speed);

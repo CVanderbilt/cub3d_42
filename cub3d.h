@@ -32,6 +32,7 @@ typedef struct	s_mlx
 	t_texture	*w_img;
 	t_texture	*e_img;
 	t_texture	*skybox;
+	t_texture	*sprite1;
 	char		*title;
 	int			x;
 	int			y;
@@ -63,6 +64,13 @@ typedef struct	s_player
     double		rot_speed;// = frameTime * 3.0; //the constant value is in radians/second
 }				t_player;
 
+typedef struct s_sprite
+{
+	t_texture	*texture;
+	int			id;	
+	float		distance;
+}				t_sprite;
+
 typedef struct	s_ray
 {
 	//ray pos.
@@ -93,6 +101,11 @@ typedef struct	s_data
 {
 	t_mlx		*mlx;
 	t_player	*player;
+
+	int			sprites_num;
+	int			*sprites_id;
+	t_sprite	*sprites;
+
 	void		*img;
 	int			**map;
 	int			map_width;
@@ -103,9 +116,10 @@ typedef struct	s_data
 	char		*s_texture;
 	char		*w_texture;
 	char		*e_texture;
-	char		*sprite_texture;
+	char		*sprite1;
 	int			floor_color;
 	int			ceil_color;
+	double		*buffer_z;
 }				t_data;
 
 typedef	struct	s_paint_col
@@ -116,6 +130,7 @@ typedef	struct	s_paint_col
 	int			draw_end;
 	int			tex_x;
 	int			tex_y;
+	int			mul;
 	double		step;
 	double		tex_pos;
 	double		wall_x;
