@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/27 13:15:57 by eherrero          #+#    #+#             */
-/*   Updated: 2020/01/29 19:16:18 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/01/30 20:37:25 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -143,7 +143,7 @@ int				ft_set_dir_texture(char *str, int i, char **texture)
 	if (!str[i])
 		ft_cub_error();
 	j = i;
-	while (!ft_isspace(str[i]))
+	while (!ft_isspace(str[i]) &&  str[i])
 		i++;
 	ret = (char *)malloc(i - j + 1);
 	if (!ret)
@@ -178,6 +178,91 @@ int				ft_check_w(char *str, t_data *data)
 	return (ft_set_dir_texture(str, 2, &(data->w_texture)));
 }
 
+char			*ft_get_text(char *str)
+{
+	int		i;
+	int		j;
+	int		k;
+	char	*ret;
+
+	i = 0;
+	printf("copiamos a partit de >%s<\n", str);
+	if (!ft_isspace(str[i]))
+		ft_cub_error();
+	while (str[i] && ft_isspace(str[i]))
+		i++;
+	if (!str[i])
+		ft_cub_error();
+	j = i;
+	while (str[i])
+		i++;
+	printf("aqui llega\n");
+	ret = (char*)malloc(i - j + 1);
+	if  (!ret)
+		ft_memory_error();
+	k = -1;
+	while (++k < i - j)
+		ret[k] = str[k + j];
+	ret[i - j] = 0;
+	printf("ret >%s<\n", ret);
+	return (ret);
+}
+
+void			ft_set_sprite_data(char *str, t_sprite *sprite)
+{
+	int i;
+
+	i = 1;
+	printf("iniciamos sprite %p\n", sprite);
+	while (ft_isspace(str[i]))
+		i++;
+	if (!ft_isdigit(str[i]))
+		ft_cub_error();
+	printf("empezara atoi en %c\n", str[i]);
+	sprite->x = ft_atoi(str + i) + 0.5;
+	printf("x = %f\n", sprite->x);
+	while (ft_isdigit(str[i]))
+		i++;
+	//exit(0);
+	if (!ft_isspace(str[i]))
+		ft_cub_error();
+	while (ft_isspace(str[i]))
+		i++;
+	if (!ft_isdigit(str[i]))
+		ft_cub_error();
+	sprite->y = ft_atoi(str + i) + 0.5;
+	while (ft_isdigit(str[i]))
+		i++;
+	if (!str[i])
+		ft_cub_error();
+	sprite->texture_path = ft_get_text(str + i);
+}
+
+int				ft_set_new_sprite(char *str, t_data *data)
+{
+	t_sprite	*new_buff;
+	char		*old_buff;
+	int			i;
+	int			end;
+	int			old_size;
+
+	i = -1;
+	end = sizeof(t_sprite) * data->sprites_num;
+	data->sprites_num++;
+	new_buff = (t_sprite*)malloc(data->sprites_num);
+	old_buff = (char*)data->sprite_buffer;
+	//while (++i < end)
+	//	((char*)new_buff)[i] = old_buff[i];
+	old_size = sizeof(t_sprite) * (data->sprites_num - 1);
+	if (old_buff)
+		new_buff = ft_realloc(old_buff, old_size, old_size + sizeof(t_sprite));
+	data->sprite_buffer = new_buff;
+	ft_set_sprite_data(str, &new_buff[data->sprites_num - 1]);
+	if (data->sprites_num == 2)
+		printf("1: %p\n2: %p\n", &data->sprite_buffer[0], &data->sprite_buffer[1]);
+	return (1);
+}
+
 int				ft_check_s(char *str, t_data *data)
 {
 	if (str[0] != 'S')
@@ -185,7 +270,8 @@ int				ft_check_s(char *str, t_data *data)
 	else if (str[1] == 'O' && ft_isspace(str[2]))
 		return (ft_set_dir_texture(str, 2, &(data->s_texture)));
 	if (ft_isspace(str[1]))
-		return (ft_set_dir_texture(str, 1, &(data->sprite1)));
+		return (ft_set_new_sprite(str, data));
+		//return (ft_set_dir_texture(str, 1, &(data->sprite1)));
 	ft_cub_error();
 	return (0);
 }

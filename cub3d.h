@@ -32,6 +32,7 @@ typedef struct	s_mlx
 	t_texture	*w_img;
 	t_texture	*e_img;
 	t_texture	*skybox;
+	t_texture	*floor;
 	t_texture	*sprite1;
 	char		*title;
 	int			x;
@@ -47,6 +48,7 @@ typedef struct	s_player
 	double		x2;//aux
 	double		y2;//aux
 	//player dir.
+	//sprites[0].id = 1;	
 	double		dir_x;
 	double		dir_y;
 	//camera plane.
@@ -67,8 +69,9 @@ typedef struct	s_player
 typedef struct s_sprite
 {
 	t_texture	*texture;
-	int			id;	
-	float		distance;
+	char		*texture_path;
+	float		x;
+	float		y;
 }				t_sprite;
 
 typedef struct	s_ray
@@ -103,8 +106,8 @@ typedef struct	s_data
 	t_player	*player;
 
 	int			sprites_num;
-	int			*sprites_id;
-	t_sprite	*sprites;
+	//int			*sprites_id;
+	t_sprite	*sprite_buffer;
 
 	void		*img;
 	int			**map;

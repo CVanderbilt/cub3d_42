@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/27 14:53:37 by eherrero          #+#    #+#             */
-/*   Updated: 2020/01/29 15:01:47 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/01/30 21:52:28 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,6 +44,22 @@ void	ft_check_movement(t_data *data, int keycode, int state)
 	ft_print_states(data->player);
 }
 
+int		ft_can_walk(t_data *data, int x, int y)
+{
+	t_sprite	*s;
+	int			i;
+
+	i = 0;
+	s = data->sprite_buffer;
+	while (i < data->sprites_num)
+	{
+		if ((int)s[i].x == x && (int)s[i].y == y)
+			return (0);
+		i++;
+	}
+	return (1);
+}
+
 int		ft_player_advance(t_data *data, int code, double step)
 {
 	t_player	*p;
@@ -56,22 +72,21 @@ int		ft_player_advance(t_data *data, int code, double step)
 	p = data->player;
 	if (code == 0 || code == 1)
 	{
-		if (!data->map[(int)(p->x + mod * (p->dir_x) * step)][(int)(p->y)])
-		{
-
-			p->x += mod * p->dir_x * step;
-		}
-		if (!data->map[(int)(p->x)][(int)(p->y + mod * (p->dir_y * safe_step) * step)])
-		{
+		if (ft_can_walk(data, (int)(p->x + mod * p->dir_x * step), (int)p->y))
+			if (!data->map[(int)(p->x + mod * (p->dir_x) * step)][(int)(p->y)])
+				p->x += mod * p->dir_x * step;
+		if (ft_can_walk(data, (int)p->x, (int)p->y + mod * p->dir_y * step))
+			if (!data->map[(int)(p->x)][(int)(p->y + mod * (p->dir_y * safe_step) * step)])
 			p->y += mod * p->dir_y * step;
-		}
 	}
 	else if (code == 2 || code == 3)
 	{
 		if (!data->map[(int)(p->x - mod * p->dir_y * step)][(int)(p->y)])
-			p->x -= mod * p->dir_y * step;
+			if (ft_can_walk(data, (int)p->x - mod * p->dir_y * step, (int)p->y))
+				p->x -= mod * p->dir_y * step;
 		if (!data->map[(int)(p->x)][(int)(p->y + mod * p->dir_x * step)])
-			p->y += mod * p->dir_x * step;
+			if (ft_can_walk(data, (int)p->x, (int)p->y + mod * p->dir_x * step))
+				p->y += mod * p->dir_x * step;
 	}
 	return (1);
 }
@@ -128,6 +143,7 @@ int		ft_loop_hook(void *params)
 	int		moved;
 	static int frame;
 
+	printf("loophook_star\n");
 	data = (t_data *)params;
 	t_player	*player = data->player; 
 	mlx = data->mlx;
@@ -145,8 +161,9 @@ int		ft_loop_hook(void *params)
 				printf("ha corregido\n");
 				ft_player_rotate(player, player->rot_speed - 0.001, 0);
 			}
-
+		printf("start_render\n");
 		ft_render(data, data->mlx, data->player, data->map);
+		printf("render_completed\n");
 	}
 	frame++;
 	return (0);
