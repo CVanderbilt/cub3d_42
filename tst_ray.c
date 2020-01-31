@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/27 14:08:58 by eherrero          #+#    #+#             */
-/*   Updated: 2020/01/30 21:51:47 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/01/31 19:18:40 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,6 +101,8 @@ void		ft_paint_sky_col(t_ray *ray, t_data *data, t_paint_col *ft, int *img)
 	//printf("w = %d\n", t->width);
 
 	float kk = a * t->height / 360;
+	if (kk >= t->height)
+		kk = t->height - 1;
 	//printf("pintamos la fila %f en la columna %d\n", kk, ray->col);
 	offset = t->width * (int)kk;;
 	//printf("-kk-offset %d\n", offset);
@@ -118,6 +120,9 @@ void		ft_paint_sky_col(t_ray *ray, t_data *data, t_paint_col *ft, int *img)
 		//printf("pinta pixel en ray->col %d + i %d * data->res_y %d = %d\n", ray->col, i, data->res_y, ray->col + i * data->res_y);
 		//printf("-pp-%d color %d\n", offset + j, sky_img[offset + j]);
 		//printf("    pinta en %d la posicion %d\n", i, offset + j);
+	//	printf("-----%d\n", ray->col + i * data->res_y);
+	//	printf("  ray_col %d\n  i %d\n  draw_s %d\n", ray->col, i, ft->draw_s);
+	//	printf("j %d, offset %d\n", j, offset);
 		img[ray->col + i * data->res_y] = sky_img[offset + j];
 		i++;
 	}
@@ -164,20 +169,23 @@ void		ft_paint_col(t_ray *ray, t_data *data)
 	ft.mul = tex->height * ft.tex_x;
 
 
-	//printf("  paint_col antes while 1\n");
+	//printf("  pinta desde %d hasta %d\n", ft.draw_s, ft.draw_end);
 	while (ft.draw_s++ < ft.draw_end)
 	{
 		ft.tex_y = (int)ft.tex_pos & (tex->height - 1);
 		ft.tex_pos += ft.step;
 		ft.color = tex->addr[ft.mul + ft.tex_y];
-		img[ray->col + (ft.draw_s - 1) * data->res_y] = ft.color;
+		//if (ray->col + (ft.draw_s - 1) * data->res_y >= data->res_y * data->res_x)
+			img[ray->col + (ft.draw_s - 1) * data->res_y] = ft.color;
 	}
 	//printf("  paint_col antes while 2\n");
 	while (ft.draw_end < data->mlx->y)
 	{
-		img[ray->col + ft.draw_end * data->res_y] = 6579300;
+		//printf("---%d\n", ray->col + ft.draw_end * data->res_y);
+		img[ray->col + (ft.draw_end - 1) * data->res_y] = 6579300;
 		ft.draw_end++;
 	}
+	//getchar();
 }
 
 double		ft_ray_dist(t_ray *ray, t_player *player)

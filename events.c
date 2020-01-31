@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/27 14:53:37 by eherrero          #+#    #+#             */
-/*   Updated: 2020/01/30 21:52:28 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/01/31 19:22:04 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,21 +14,21 @@
 
 int		ft_key_release_hook(int keycode, void *params)
 {
-	printf("released keycode: %d\n", keycode);
+//	printf("released keycode: %d\n", keycode);
 	ft_check_movement((t_data *)params, keycode, 0);
 	return (0);
 }
 
 void	ft_print_states(t_player *player)
 {
-	printf("mov forward: %d\n", player->moving_forward);
-	printf("mov backward: %d\n", player->moving_backward);
+//	printf("mov forward: %d\n", player->moving_forward);
+//	printf("mov backward: %d\n", player->moving_backward);
 }
 
 void	ft_check_movement(t_data *data, int keycode, int state)
 {
-	printf(" state: %d\n", state);
-	printf(" keycode: %d\n", keycode);
+//	printf(" state: %d\n", state);
+//	printf(" keycode: %d\n", keycode);
 	if (keycode == 13)
 		data->player->moving_forward = state;
 	if (keycode == 1)
@@ -109,7 +109,7 @@ int		ft_move(t_data *data, t_player *player)
 	double	step;
 	double	a;
 	int		moved;
-
+	//printf("entra a ft_moive\n");
 	moved = 0;
 	step = player->mov_speed;
 	a = player->rot_speed;
@@ -138,12 +138,13 @@ int		ft_move(t_data *data, t_player *player)
 
 int		ft_loop_hook(void *params)
 {
+//	printf("???\n");
 	t_data	*data;
 	t_mlx	*mlx;
 	int		moved;
 	static int frame;
 
-	printf("loophook_star\n");
+//	printf("loophook_star\n");
 	data = (t_data *)params;
 	t_player	*player = data->player; 
 	mlx = data->mlx;
@@ -158,20 +159,120 @@ int		ft_loop_hook(void *params)
 		if ((player->dir_x == 1 || player->dir_x == -1) ||
 			(player->dir_y == 1 || player->dir_y == -1))
 			{
-				printf("ha corregido\n");
+			//	printf("ha corregido\n");
 				ft_player_rotate(player, player->rot_speed - 0.001, 0);
 			}
-		printf("start_render\n");
+//		printf("start_render\n");
 		ft_render(data, data->mlx, data->player, data->map);
-		printf("render_completed\n");
+//		printf("render_completed\n");
 	}
 	frame++;
 	return (0);
 }
 
+void	ft_free_map(t_data *data)
+{
+	int i;
+
+	i = 0;
+	while (i < data->map_height)
+	{
+		free (data->map[i]);
+		i++;
+	}
+	free (data->map);
+}
+
+void	ft_free_texture(t_data *data, t_texture *t)
+{
+	//printf("  free %p\n", t->addr);
+//	free(t->addr);
+	mlx_destroy_image(data->mlx->ptr, t->img);
+//	free(t->img);
+	//printf("  free(ft_free_texture)%p\n", t);
+	free(t);
+	//printf("sin problemas\n");
+}
+
+void	ft_free_textures(t_data *data)
+{
+	//printf("  free %p\n", data->n_texture);
+	free(data->n_texture);
+	//printf("  free %p\n", data->s_texture);
+	free(data->s_texture);
+	//printf("  free %p\n", data->e_texture);
+	free(data->e_texture);
+	//printf("  free %p\n", data->w_texture);
+	free(data->w_texture);
+	ft_free_texture(data, data->mlx->n_img);
+	ft_free_texture(data, data->mlx->s_img);
+	ft_free_texture(data, data->mlx->e_img);
+	ft_free_texture(data, data->mlx->w_img);
+	ft_free_texture(data, data->mlx->skybox);
+}
+
+void	ft_free_sprite(t_data *data, t_sprite *sprite)
+{
+	ft_free_texture(data, sprite->texture);
+	//printf("  free %p\n", sprite->texture_path);
+	free(sprite->texture_path);
+	//free(sprite);
+}
+
+void	ft_free_sprites(t_data *data)
+{
+	int			i;
+	t_sprite	*s;
+
+	i = 0;
+	s = data->sprite_buffer;
+	//free(s);
+	while (i < data->sprites_num)
+	{
+		ft_free_sprite(data, s + i);
+//		printf("liberta: %d\n", i);
+		i++;
+	}
+	//printf("  free(ft_free_sprites) %p\n", s);
+	free(s);
+	//printf("sin problema\n");
+}
+
+void	ft_free_mlx(t_mlx *mlx)
+{
+	//printf("  free -1- >%p<\n", mlx->title);
+//	free(mlx->title);
+//	printf("2\n");
+	mlx_destroy_image(mlx->ptr, mlx->screen);
+//	printf("3\n");
+	mlx_destroy_window(mlx->ptr, mlx->window);
+//	printf("4\n");
+	//free(mlx->ptr);
+	//free(mlx);
+	//free(mlx->screen_data);
+}
+
 int		ft_key_hook(int keycode, void *params)
 {
-	printf("pressed keycode: %d\n", keycode);
+//	printf("pressed keycode: %d\n", keycode);
+	t_data *data;
+
+	data = (t_data*)params;
+	if (keycode == 53)
+	{
+		ft_free_map(data);
+	//	mlx_destroy_image(data->mlx->ptr, data->img);
+	//	free(data->img);
+	//	printf("  free %p\n", data->buffer_z);
+		free(data->buffer_z);
+		ft_free_textures(data);
+		ft_free_sprites(data);
+	//	printf("  free %p\n", data->player);
+		free(data->player);
+		ft_free_mlx(data->mlx);
+////////getchar();
+		exit(0);
+	}
 	ft_check_movement((t_data *)params, keycode, 1);
 	return (0);
 }

@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/27 13:15:57 by eherrero          #+#    #+#             */
-/*   Updated: 2020/01/30 20:37:25 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/01/31 19:19:17 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,6 +51,7 @@ void			*ft_calloc(size_t count, size_t size)
 
 	if (!(p = malloc(count * size)))
 		return (0);
+//	printf("malloc(ft_calloc) %p\n", p);
 	ft_kk(p, count * size);
 	return (p);
 }
@@ -66,6 +67,7 @@ void			*ft_realloc(void *ptr, int prev_size, int new_size)
 	i = 0;
 	str = (char *)ptr;
 	ret = ft_calloc(new_size, sizeof(char));
+	//printf("realoc calloc %p\n", ret);
 	if (!ret)
 		return (0);
 	while (i < prev_size)
@@ -73,6 +75,7 @@ void			*ft_realloc(void *ptr, int prev_size, int new_size)
 		ret[i] = str[i];
 		i++;
 	}
+//	printf("  free(ft_realloc) %p\n", str);
 	free(str);
 	return ((void *)ret);
 }
@@ -146,6 +149,7 @@ int				ft_set_dir_texture(char *str, int i, char **texture)
 	while (!ft_isspace(str[i]) &&  str[i])
 		i++;
 	ret = (char *)malloc(i - j + 1);
+//	printf("malloc(ft_set_dir_texture) %p\n", ret);
 	if (!ret)
 	{
 		printf("1\n");
@@ -186,7 +190,7 @@ char			*ft_get_text(char *str)
 	char	*ret;
 
 	i = 0;
-	printf("copiamos a partit de >%s<\n", str);
+	//printf("copiamos a partit de >%s<\n", str);
 	if (!ft_isspace(str[i]))
 		ft_cub_error();
 	while (str[i] && ft_isspace(str[i]))
@@ -196,31 +200,35 @@ char			*ft_get_text(char *str)
 	j = i;
 	while (str[i])
 		i++;
-	printf("aqui llega\n");
+	//printf("aqui llega\n");
 	ret = (char*)malloc(i - j + 1);
+//	printf("malloc(ft_get_text) %p\n", ret);
 	if  (!ret)
 		ft_memory_error();
 	k = -1;
 	while (++k < i - j)
 		ret[k] = str[k + j];
 	ret[i - j] = 0;
-	printf("ret >%s<\n", ret);
+	//printf("ret >%s<\n", ret);
 	return (ret);
 }
 
 void			ft_set_sprite_data(char *str, t_sprite *sprite)
 {
 	int i;
+	double kk;
 
 	i = 1;
-	printf("iniciamos sprite %p\n", sprite);
+	//printf("iniciamos sprite %p\n", sprite);
 	while (ft_isspace(str[i]))
 		i++;
 	if (!ft_isdigit(str[i]))
 		ft_cub_error();
-	printf("empezara atoi en %c\n", str[i]);
-	sprite->x = ft_atoi(str + i) + 0.5;
-	printf("x = %f\n", sprite->x);
+	//printf("empezara atoi en %c\n", str[i]);
+	sprite->x = (double)ft_atoi(str + i) + 0.5;
+	//printf("kk = %f\n", kk);
+	//sprite->y = kk;
+	//printf("x = %f\n", sprite->x);
 	while (ft_isdigit(str[i]))
 		i++;
 	//exit(0);
@@ -230,12 +238,13 @@ void			ft_set_sprite_data(char *str, t_sprite *sprite)
 		i++;
 	if (!ft_isdigit(str[i]))
 		ft_cub_error();
-	sprite->y = ft_atoi(str + i) + 0.5;
+	sprite->y = (double)ft_atoi(str + i) + 0.5;
 	while (ft_isdigit(str[i]))
 		i++;
 	if (!str[i])
 		ft_cub_error();
 	sprite->texture_path = ft_get_text(str + i);
+	sprite->type = 0;
 }
 
 int				ft_set_new_sprite(char *str, t_data *data)
@@ -249,17 +258,23 @@ int				ft_set_new_sprite(char *str, t_data *data)
 	i = -1;
 	end = sizeof(t_sprite) * data->sprites_num;
 	data->sprites_num++;
-	new_buff = (t_sprite*)malloc(data->sprites_num);
+	new_buff = (t_sprite*)malloc(data->sprites_num * sizeof(t_sprite));
+//	printf("malloc(ft_set_new_sprite) %p\n", new_buff);
 	old_buff = (char*)data->sprite_buffer;
 	//while (++i < end)
 	//	((char*)new_buff)[i] = old_buff[i];
 	old_size = sizeof(t_sprite) * (data->sprites_num - 1);
 	if (old_buff)
+	{
+		free (new_buff);
 		new_buff = ft_realloc(old_buff, old_size, old_size + sizeof(t_sprite));
+	//	free(old_buff);
+	}
 	data->sprite_buffer = new_buff;
+	printf("%p   %d\n", new_buff, data->sprites_num - 1);
 	ft_set_sprite_data(str, &new_buff[data->sprites_num - 1]);
-	if (data->sprites_num == 2)
-		printf("1: %p\n2: %p\n", &data->sprite_buffer[0], &data->sprite_buffer[1]);
+	//if (data->sprites_num == 2)
+	//	printf("1: %p\n2: %p\n", &data->sprite_buffer[0], &data->sprite_buffer[1]);
 	return (1);
 }
 
@@ -271,7 +286,7 @@ int				ft_check_s(char *str, t_data *data)
 		return (ft_set_dir_texture(str, 2, &(data->s_texture)));
 	if (ft_isspace(str[1]))
 		return (ft_set_new_sprite(str, data));
-		//return (ft_set_dir_texture(str, 1, &(data->sprite1)));
+	//return (ft_set_dir_texture(str, 1, &(data->sprite1)));
 	ft_cub_error();
 	return (0);
 }
@@ -347,6 +362,11 @@ int				ft_check_c(char *str, t_data *data)
 	return (0);
 }
 
+int				ft_check_h(char *str, t_data *data)
+{
+	return (0);
+}
+
 int				ft_check_info_line(char *str, t_data *data)
 {
 	if (str[0] == 'R')
@@ -361,6 +381,8 @@ int				ft_check_info_line(char *str, t_data *data)
 		return (ft_check_e(str, data));
 	if (str[0] == 'C' || str[0] == 'F')
 		return (ft_check_c(str, data));
+	if (str[0] == 'H')
+		return (ft_check_h(str, data));
 	if (!str[0])
 		return (0);
 	return (ft_cub_error());
@@ -383,6 +405,7 @@ int				ft_first_line_check(int *line, int **tab, char *str, t_data *d)
 		ft.i++;
 	}
 	row = (int *)malloc(sizeof(int) * ft.i);
+//	printf("malloc(ft_first_line_check) %p\n", row);
 	d->map_width = !row ? ft_memory_error() : ft.count;
 	tab[0] = row;
 	ft.i = 0;
@@ -407,6 +430,7 @@ int				ft_check_map_line(int *line, int **tab, char *str, t_data *data)
 		return (ft_first_line_check(line, tab, str, data));
 	if (!(row = (int *)malloc(sizeof(int) * data->map_width)))
 		ft_memory_error();
+//	printf("malloc(ft_check_map_line) %p\n", row);
 	tab[*line] = row;
 	while (ft_isspace(str[ft.i]))
 		ft.i++;
@@ -425,7 +449,7 @@ int				ft_check_map_line(int *line, int **tab, char *str, t_data *data)
 
 int				ft_check_line(int *line, int **tab, char *str, t_data *data)
 {
-	printf("line(fcl): %s\n", str);
+	//printf("line(fcl): %s\n", str);
 	if (str[0] != '1')
 	{
 		return (!(*line) ? ft_check_info_line(str, data) : -1);
@@ -441,6 +465,7 @@ int				ft_get_map(char *map, t_data *data)
 
 	if (!(t = (int **)malloc(sizeof(int *) * 20)))
 		return (ft_memory_error());
+//	printf("malloc(ft_get_map) %p\n", t);
 	l = 0;
 	ft.finished = 0;
 	ft.fd = open(map, O_RDONLY);
@@ -452,8 +477,10 @@ int				ft_get_map(char *map, t_data *data)
 			if (!(t = ft_realloc(t, l * sizeof(int *),
 							(l + 20) * sizeof(int *))))
 				return (ft_memory_error());
+//		printf("  free(ft_check_map_line) %p\n", ft.str);
 		free(ft.str);
 	}
+//	printf("  free(ft_check_map_line2) %p\n", ft.str);
 	free(ft.str);
 	data->map = t;
 	data->map_height = l;
