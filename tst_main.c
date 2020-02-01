@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/17 10:43:11 by eherrero          #+#    #+#             */
-/*   Updated: 2020/01/31 19:14:55 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/02/01 14:37:28 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,7 @@ void	ft_init_texture(t_mlx *mlx, t_texture *t, char *path)
 	char	*line;
 	int		fd;
 	int		e;
+
 
 	e = 1;
 	//printf("path: >%s<\n", path);
@@ -128,9 +129,9 @@ void	ft_init_sprites(t_data *data)
 	while (i < data->sprites_num)
 	{
 	//	printf("sprite %d: %s\n", i, s[i].texture_path);
-		s[i].texture = (t_texture*)malloc(sizeof(t_texture));
+		//s[i].texture = (t_texture*)malloc(sizeof(t_texture));
 //		printf("malloc(ft_init_sprites) %p\n", s[i].texture);
-		ft_init_texture(data->mlx, s[i].texture, s[i].texture_path);
+		//ft_init_texture(data->mlx, s[i].texture, s[i].texture_path);
 		i++;
 	}
 	//exit(0);
@@ -163,7 +164,7 @@ void	ft_init_mlx(t_data *data, char *map_name)
 	ft_init_textures(data);
 	//getchar();
 	//printf("init_mlx 4\n");
-	ft_init_sprites(data);
+	//ft_init_sprites(data);
 	//printf("init_mlx 5\n");
 	if (!mlx->ptr)
 		ft_memory_error();
@@ -196,10 +197,13 @@ void	ft_init_data(t_data *data, char *map_name, double rsp, double msp)
 	data->player = player;
 	data->mlx = mlx;
 	ft_init_player(player, rsp, msp);
-	//printf("get_map\n");
 	//getchar();
 	data->sprite_buffer = 0;
 	data->sprites_num = 0;
+	data->sprite_tex_buffer = 0;
+	data->sprite_tex_num = 0;
+	//data
+	printf("get_map\n");
 	ft_get_map(map_name, data);
 	data->buffer_z = (double*)malloc(data->res_x * sizeof(double));
 	//getchar();
@@ -207,6 +211,10 @@ void	ft_init_data(t_data *data, char *map_name, double rsp, double msp)
 	if (!data->buffer_z)
 		ft_memory_error();
 	//getchar();
+	data->hud = (t_texture*)malloc(sizeof(t_texture));
+	if (!data->hud)
+		ft_memory_error();
+	ft_init_texture(data->mlx, data->hud, "hud.xpm");
 	ft_init_mlx(data, map_name);
 	/////getchar();
 }
@@ -245,7 +253,14 @@ int		main(int argc, char **argv)
 	(data.player)->kk = 0;
 	p = data.player;
 	//printf("Rot_speed: %f\nMov_speed: %f\n", p->rot_speed, p->mov_speed);
+	printf("start_first_render\n");
+	/*int i = -1;
+	while (++i < data.sprite_tex_num)
+	{
+		printf("tex %d: %d\n", i, data.sprite_tex_buffer[i].width);
+	}*/
 	ft_render(&data, data.mlx, data.player, data.map);
+	printf("end_first_render\n");
 	ft_loop(&data);
 	return (0);
 }

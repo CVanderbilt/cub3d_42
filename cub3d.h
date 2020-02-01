@@ -41,6 +41,8 @@ typedef struct		s_mlx
 
 typedef struct		s_player
 {
+	int				health;
+	int				ammo;
 	int				kk;
 	//player pos.
 	double			x;
@@ -75,9 +77,9 @@ typedef struct		s_player
 
 typedef struct		s_sprite
 {
-	t_texture		*texture;
-	char			*texture_path;
-	int				kk;
+	//t_texture		*texture;
+	//char			*texture_path;
+	int				texture;
 	double			x;
 	double			y;
 	int				type;
@@ -115,8 +117,13 @@ typedef struct		s_data
 	t_mlx			*mlx;
 	t_player		*player;
 
+
+	t_texture		*hud;
+
+	int				sprite_tex_num;
+	t_texture		*sprite_tex_buffer;
+	
 	int				sprites_num;
-	//int			*sprites_id;
 	t_sprite		*sprite_buffer;
 
 	//void		*img;

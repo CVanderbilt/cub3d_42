@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/27 14:53:37 by eherrero          #+#    #+#             */
-/*   Updated: 2020/01/31 19:22:04 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/02/01 14:35:40 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -190,12 +190,13 @@ void	ft_free_texture(t_data *data, t_texture *t)
 	mlx_destroy_image(data->mlx->ptr, t->img);
 //	free(t->img);
 	//printf("  free(ft_free_texture)%p\n", t);
-	free(t);
+//	free(t);
 	//printf("sin problemas\n");
 }
 
 void	ft_free_textures(t_data *data)
 {
+	int i;
 	//printf("  free %p\n", data->n_texture);
 	free(data->n_texture);
 	//printf("  free %p\n", data->s_texture);
@@ -209,34 +210,26 @@ void	ft_free_textures(t_data *data)
 	ft_free_texture(data, data->mlx->e_img);
 	ft_free_texture(data, data->mlx->w_img);
 	ft_free_texture(data, data->mlx->skybox);
-}
-
-void	ft_free_sprite(t_data *data, t_sprite *sprite)
-{
-	ft_free_texture(data, sprite->texture);
-	//printf("  free %p\n", sprite->texture_path);
-	free(sprite->texture_path);
-	//free(sprite);
+	free(data->mlx->n_img);
+	free(data->mlx->s_img);
+	free(data->mlx->e_img);
+	free(data->mlx->w_img);
+	free(data->mlx->skybox);
+	i = -1;
+	while (++i < data->sprite_tex_num)
+		ft_free_texture(data, &data->sprite_tex_buffer[i]);
+	free(data->sprite_tex_buffer);
 }
 
 void	ft_free_sprites(t_data *data)
 {
-	int			i;
 	t_sprite	*s;
-
-	i = 0;
+	
 	s = data->sprite_buffer;
-	//free(s);
-	while (i < data->sprites_num)
-	{
-		ft_free_sprite(data, s + i);
-//		printf("liberta: %d\n", i);
-		i++;
-	}
-	//printf("  free(ft_free_sprites) %p\n", s);
 	free(s);
-	//printf("sin problema\n");
 }
+
+
 
 void	ft_free_mlx(t_mlx *mlx)
 {
@@ -250,6 +243,33 @@ void	ft_free_mlx(t_mlx *mlx)
 	//free(mlx->ptr);
 	//free(mlx);
 	//free(mlx->screen_data);
+}
+
+void	ft_update_hud(t_data *data)
+{
+	int			x;
+	int			y;
+	t_texture	*t;
+	int			*img;
+	int			*screen;
+	int			color;
+
+	t = data->hud;
+	img = t->addr;
+	y = data->res_y - data->res_y / 5;
+	screen = (int*)data->mlx->screen_data;
+	while (y < data->res_y)
+	{
+		x = 0;
+		while (x < data->res_x)
+		{
+			color = img[(y / data->res_y) * t->height * t->width + (x / data->res_x) * t->width];
+			if (color != 9961608)
+				screen[y * data->res_x + x] = color;
+			x++;
+		}
+		y++;
+	}
 }
 
 int		ft_key_hook(int keycode, void *params)
@@ -266,13 +286,15 @@ int		ft_key_hook(int keycode, void *params)
 	//	printf("  free %p\n", data->buffer_z);
 		free(data->buffer_z);
 		ft_free_textures(data);
-		ft_free_sprites(data);
+		free(data->sprite_buffer);
+		//	ft_free_sprites(data);
 	//	printf("  free %p\n", data->player);
 		free(data->player);
 		ft_free_mlx(data->mlx);
 ////////getchar();
 		exit(0);
 	}
-	ft_check_movement((t_data *)params, keycode, 1);
+	ft_check_movement(data, keycode, 1);
+	ft_update_hud(data);
 	return (0);
 }

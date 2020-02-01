@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/27 14:08:58 by eherrero          #+#    #+#             */
-/*   Updated: 2020/01/31 19:18:40 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/02/01 13:34:52 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -210,70 +210,16 @@ void		ft_ray_side_dist(t_ray *ray)
 		ray->side = 1;
 	}
 }
-/*
-void		ft_paint_floor(t_data *data)
+
+t_texture	*ft_get_sprite_texture(t_data *data, t_sprite *sprite)
 {
-	t_texture	*t;
-	int			*img;
-	int			h;
-
-	h = data->res_y / 2;
-	img = (int*)data->mlx->screen_data;
-	t = data->mlx->floor;
-	for(int y = 0; y < h; y++)
-    {
-		// rayDir for leftmost ray (x = 0) and rightmost ray (x = w)
-		float rayDirX0 = data->player->dir_x - data->player->plane_x;
-		float rayDirY0 = data->player->dir_y - data->player->plane_y;
-		float rayDirX1 = data->player->dir_x + data->player->plane_x;
-		float rayDirY1 = data->player->dir_y + data->player->plane_y;
-		
-		// Vertical position of the camera.
-		float posZ = 0.5 * data->res_y;
-
-		// Current y position compared to the center of the screen (the horizon)
-		int p = y - (int)posZ;
-
-     
-		// Horizontal distance from the camera to the floor for the current row.
-		// 0.5 is the z position exactly in the middle between floor and ceiling.
-		float rowDistance = posZ / p;
-
-		// calculate the real world step vector we have to add for each x (parallel to camera plane)
-		// adding step by step avoids multiplications with a weight in the inner loop
-		float floorStepX = rowDistance * (rayDirX1 - rayDirX0) / data->res_x;
-		float floorStepY = rowDistance * (rayDirY1 - rayDirY0) / data->res_x;
-
-		// real world coordinates of the leftmost column. This will be updated as we step to the right.
-		float floorX = data->player->x + rowDistance * rayDirX0;
-		float floorY = data->player->y + rowDistance * rayDirY0;
-
-		for(int x = 0; x < data->res_x; ++x)
-		{
-			// the cell coord is simply got from the integer parts of floorX and floorY
-			int cellX = (int)(floorX);
-			int cellY = (int)(floorY);
-
-			// get the texture coordinate from the fractional part
-        	int tx = (int)(t->width * (floorX - cellX)) & (t->width - 1);
-        	int ty = (int)(t->height * (floorY - cellY)) & (t->height - 1);
-
-        	floorX += floorStepX;
-        	floorY += floorStepY;
-
-        	// choose texture and draw the pixel
-        	//int floorTexture = 3;
-        	//int ceilingTexture = 6;
-        	int	color;
-
-        	// floor
-        	color = t->addr[t->width * tx + ty];
-        	//color = (color >> 1) & 8355711; // make a bit darker
-        	//data->mlx->[y][x] = color;
-			img[(data->mlx->y - y - 1) * data->res_y + data->res_x - x] = color;
-		}
-    }
-}*/
+	printf("tex: %d -- tex_num: %d\n", sprite->texture, data->sprite_tex_num);
+	if (sprite->texture >= data->sprite_tex_num)
+		ft_cub_error();
+	if (sprite->type == 0)
+		return (&data->sprite_tex_buffer[sprite->texture]);
+	return (0);
+}
 
 void		ft_paint_one_sprite(t_data *data, t_sprite *sprite)
 {
@@ -307,7 +253,9 @@ void		ft_paint_one_sprite(t_data *data, t_sprite *sprite)
 	//printf("  pinta una\n");
 	screen =(int*)data->mlx->screen_data;
 
-	t = sprite->texture;
+	printf("intenta sacar textura\n");
+	t = ft_get_sprite_texture(data, sprite);
+	printf("la saca\n");
 	img = t->addr;
 
 	p = data->player;
@@ -345,7 +293,7 @@ void		ft_paint_one_sprite(t_data *data, t_sprite *sprite)
 //	printf("pinta desde x(%d a %d) y desde y(%d a %d)\n", draw_start_x, draw_end_x ,draw_start_y, draw_end_y);
 	while (stripe < draw_end_x)
 	{
-//		printf("stripe: %d\n", stripe);
+	//	printf("stripe: %d\n", stripe);
 		tex_x = (int)(256 * (stripe - (-sprite_w / 2 + sprite_screen_x)) * t->width / sprite_w) / 256;
 		y = draw_start_y;
 //		printf("tex_x %d\n", tex_x);
@@ -363,7 +311,7 @@ void		ft_paint_one_sprite(t_data *data, t_sprite *sprite)
 				
 				int d = (y) * 256 - data->res_y * 128 + sprite_h * 128;
 				int	tex_y = ((d * t->height) / sprite_h) / 256;
-			//	printf("  draw_end %d\n", draw_end_y);
+		//		printf("  draw_end %d\n", draw_end_y);
 				//printf("t_height %d\n", t->height);
 	//printf("sprite_h %d\n", sprite_h);
 		//printf("  tex_y %d\n", tex_y);

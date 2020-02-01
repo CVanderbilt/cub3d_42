@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/27 13:15:57 by eherrero          #+#    #+#             */
-/*   Updated: 2020/01/31 19:19:17 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/02/01 13:34:23 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -216,22 +216,15 @@ char			*ft_get_text(char *str)
 void			ft_set_sprite_data(char *str, t_sprite *sprite)
 {
 	int i;
-	double kk;
 
 	i = 1;
-	//printf("iniciamos sprite %p\n", sprite);
 	while (ft_isspace(str[i]))
 		i++;
 	if (!ft_isdigit(str[i]))
 		ft_cub_error();
-	//printf("empezara atoi en %c\n", str[i]);
 	sprite->x = (double)ft_atoi(str + i) + 0.5;
-	//printf("kk = %f\n", kk);
-	//sprite->y = kk;
-	//printf("x = %f\n", sprite->x);
 	while (ft_isdigit(str[i]))
 		i++;
-	//exit(0);
 	if (!ft_isspace(str[i]))
 		ft_cub_error();
 	while (ft_isspace(str[i]))
@@ -241,9 +234,13 @@ void			ft_set_sprite_data(char *str, t_sprite *sprite)
 	sprite->y = (double)ft_atoi(str + i) + 0.5;
 	while (ft_isdigit(str[i]))
 		i++;
-	if (!str[i])
+	if (!ft_isspace(str[i]))
 		ft_cub_error();
-	sprite->texture_path = ft_get_text(str + i);
+	while (ft_isspace(str[i]))
+		i++;
+	if (!ft_isdigit(str[i]))
+		ft_cub_error();
+	sprite->texture = ft_atoi(str + i);
 	sprite->type = 0;
 }
 
@@ -362,8 +359,39 @@ int				ft_check_c(char *str, t_data *data)
 	return (0);
 }
 
-int				ft_check_h(char *str, t_data *data)
+void			ft_set_sprite_tex_data(char *str, t_data *data, t_texture *t)
 {
+	int i;
+
+	i = 1;
+	while (ft_isspace(str[i]))
+		i++;
+	ft_init_texture(data->mlx, t, str + i);
+}
+
+int				ft_check_t(char *str, t_data *data)
+{
+	t_texture	*new_buf;
+	t_texture	*old_buf;
+	int			old_size;
+
+	old_buf = data->sprite_tex_buffer;
+	old_size = data->sprite_tex_num * sizeof(t_texture);
+	if (!ft_isspace(str[1]))
+		ft_cub_error();
+	data->sprite_tex_num += 1;
+	new_buf = (t_texture*)malloc(sizeof(t_texture));
+	if (!new_buf)
+		ft_memory_error();
+	if (old_buf)
+	{
+		free (new_buf);
+		printf("old_size: %d\n", old_size);
+		new_buf = ft_realloc(old_buf, old_size, old_size + sizeof(t_texture));
+		printf("old_size...\n");
+	}
+	data->sprite_tex_buffer = new_buf;
+	ft_set_sprite_tex_data(str, data, &new_buf[data->sprite_tex_num - 1]);
 	return (0);
 }
 
@@ -381,8 +409,8 @@ int				ft_check_info_line(char *str, t_data *data)
 		return (ft_check_e(str, data));
 	if (str[0] == 'C' || str[0] == 'F')
 		return (ft_check_c(str, data));
-	if (str[0] == 'H')
-		return (ft_check_h(str, data));
+	if (str[0] == 'T')
+		return (ft_check_t(str, data));
 	if (!str[0])
 		return (0);
 	return (ft_cub_error());
