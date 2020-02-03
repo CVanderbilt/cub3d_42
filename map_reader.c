@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/27 13:15:57 by eherrero          #+#    #+#             */
-/*   Updated: 2020/02/01 13:34:23 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/02/03 18:31:29 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -213,6 +213,38 @@ char			*ft_get_text(char *str)
 	return (ret);
 }
 
+void			ft_sprite_extra_data(char *str, t_sprite *sprite ,int i)
+{
+	while (ft_isdigit(str[i]))
+		i++;
+	if (!ft_isspace(str[i]))
+		ft_cub_error();
+	while (ft_isspace(str[i]))
+		i++;
+	sprite->type = str[i] == 'I' ? 0 : 1;
+	if (str[i] != 'I' && str[i] != 'H')
+		ft_cub_error();
+	if (sprite->type == 0)
+		return ;
+	i++;
+	if (!ft_isspace(str[i]))
+		ft_cub_error();
+	while (ft_isspace(str[i]))
+		i++;
+	if (!ft_isdigit(str[i]))
+		ft_cub_error();
+	sprite->dir_x = ft_atoi(str + i);
+	while (ft_isdigit(str[i]))
+		i++;
+	if (!ft_isspace(str[i]))
+		ft_cub_error();
+	while (ft_isspace(str[i]))
+		i++;
+	if (!ft_isdigit(str[i]))
+		ft_cub_error();
+	sprite->dir_y = ft_atoi(str + i);
+}
+
 void			ft_set_sprite_data(char *str, t_sprite *sprite)
 {
 	int i;
@@ -241,7 +273,8 @@ void			ft_set_sprite_data(char *str, t_sprite *sprite)
 	if (!ft_isdigit(str[i]))
 		ft_cub_error();
 	sprite->texture = ft_atoi(str + i);
-	sprite->type = 0;
+	ft_sprite_extra_data(str, sprite, i);
+	sprite->moved = 1;                    //QUITAR
 }
 
 int				ft_set_new_sprite(char *str, t_data *data)
@@ -279,9 +312,9 @@ int				ft_check_s(char *str, t_data *data)
 {
 	if (str[0] != 'S')
 		ft_cub_error();
-	else if (str[1] == 'O' && ft_isspace(str[2]))
+	if (str[1] == 'O' && ft_isspace(str[2]))
 		return (ft_set_dir_texture(str, 2, &(data->s_texture)));
-	if (ft_isspace(str[1]))
+	if (str[1])
 		return (ft_set_new_sprite(str, data));
 	//return (ft_set_dir_texture(str, 1, &(data->sprite1)));
 	ft_cub_error();
@@ -359,13 +392,53 @@ int				ft_check_c(char *str, t_data *data)
 	return (0);
 }
 
+void			ft_set_animation_data(char *str, t_data *data, t_texture *t)
+{
+	int i;
+
+	i = 2;
+	t->animated = 1;
+	if (!ft_isspace(str[i]))
+		ft_cub_error();
+	while (ft_isspace(str[i]))
+		i++;
+	if (!ft_isdigit(str[i]))
+		ft_cub_error();
+	t->a_directions = ft_atoi(str + i);
+	while (ft_isdigit(str[i]))
+		i++;
+	if (!ft_isspace(str[i]))
+		ft_cub_error();
+	while (ft_isspace(str[i]))
+		i++;
+	if (!ft_isdigit(str[i]))
+		ft_cub_error();
+	t->a_states = ft_atoi(str + i);
+	while (ft_isdigit(str[i]))
+		i++;
+	if (!ft_isspace(str[i]))
+		ft_cub_error();
+	while (ft_isspace(str[i]))
+		i++;
+	if (!ft_isalnum(str[i]))
+		ft_cub_error();
+	ft_init_texture(data->mlx, t, str + i);
+	t->width = t->real_width / t->a_directions;
+	t->height = t->real_height / t->a_states;
+}
+
 void			ft_set_sprite_tex_data(char *str, t_data *data, t_texture *t)
 {
 	int i;
 
 	i = 1;
+	t->a_directions = 1;
+	t->a_states = 1;
+	t->animated = 0;
 	while (ft_isspace(str[i]))
 		i++;
+	if (!ft_isalnum(str[i]))
+		ft_cub_error();
 	ft_init_texture(data->mlx, t, str + i);
 }
 
@@ -375,9 +448,10 @@ int				ft_check_t(char *str, t_data *data)
 	t_texture	*old_buf;
 	int			old_size;
 
+//	printf("comprueba textura\n");
 	old_buf = data->sprite_tex_buffer;
 	old_size = data->sprite_tex_num * sizeof(t_texture);
-	if (!ft_isspace(str[1]))
+	if (!ft_isspace(str[1]) && (str[1] != 'A' || !ft_isspace(str[2])))
 		ft_cub_error();
 	data->sprite_tex_num += 1;
 	new_buf = (t_texture*)malloc(sizeof(t_texture));
@@ -386,12 +460,18 @@ int				ft_check_t(char *str, t_data *data)
 	if (old_buf)
 	{
 		free (new_buf);
-		printf("old_size: %d\n", old_size);
+//		printf("old_size: %d\n", old_size);
 		new_buf = ft_realloc(old_buf, old_size, old_size + sizeof(t_texture));
-		printf("old_size...\n");
+//		printf("old_size...\n");
 	}
+//	printf("1\n");
 	data->sprite_tex_buffer = new_buf;
-	ft_set_sprite_tex_data(str, data, &new_buf[data->sprite_tex_num - 1]);
+//	printf("2 >%c<\n", str[1]);
+	if (str[1] != 'A')
+		ft_set_sprite_tex_data(str, data, &new_buf[data->sprite_tex_num - 1]);
+	else
+		ft_set_animation_data(str, data, &new_buf[data->sprite_tex_num - 1]);
+//	printf(" y acaba \n");
 	return (0);
 }
 
@@ -477,7 +557,7 @@ int				ft_check_map_line(int *line, int **tab, char *str, t_data *data)
 
 int				ft_check_line(int *line, int **tab, char *str, t_data *data)
 {
-	//printf("line(fcl): %s\n", str);
+	printf("line(fcl): %s\n", str);
 	if (str[0] != '1')
 	{
 		return (!(*line) ? ft_check_info_line(str, data) : -1);

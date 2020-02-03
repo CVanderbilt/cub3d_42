@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/27 14:08:58 by eherrero          #+#    #+#             */
-/*   Updated: 2020/02/01 13:34:52 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/02/03 18:44:22 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -141,32 +141,20 @@ void		ft_paint_col(t_ray *ray, t_data *data)
 
 
 	img = (int *)data->mlx->screen_data;
-	//printf("1\n");
 	ft.line_height = (int)(data->mlx->y / ray->perp_wall_dist);
-	//printf("2\n");
 	tex = ft_switch_texture(data, ray);
-	//printf("3\n");
 	ft.draw_s = -ft.line_height / 2 + data->mlx->y / 2;
-	//printf("4\n");
 	ft.draw_s = ft.draw_s < 0 ? 0 : ft.draw_s;
-	//printf("5\n");
-	ft.draw_end = ft.line_height / 2 + data->mlx->y / 2;
-	//printf("6\n");
+	ft.draw_end = (ft.line_height) / 2 + data->mlx->y / 2;
 	if (ft.draw_end >= data->mlx->y)
 		ft.draw_end = data->mlx->y - 1;
-	//printf("7\n");
 	ft.wall_x = ray->side ? data->player->x + ray->perp_wall_dist * ray->dir_x :
 		data->player->y + ray->perp_wall_dist * ray->dir_y;
-	//printf("8\n");
 	ft.tex_x = ft_tex_xcalc(ray, tex, ft.wall_x);
-	//printf("9\n");
-	ft.step = 1.0 * tex->height / ft.line_height;
-	//printf("10\n");
+	ft.step = 1.0 * tex->height / (ft.line_height/* + data->player->h*/);
 	ft.tex_pos = (ft.draw_s - data->mlx->y / 2 + ft.line_height / 2) * ft.step;
-	//printf("11\n");
 	ft_paint_sky_col(ray, data, &ft, img);
-	//printf("12\n");
-	ft.mul = tex->height * ft.tex_x;
+	ft.mul = (tex->height) * ft.tex_x;
 
 
 	//printf("  pinta desde %d hasta %d\n", ft.draw_s, ft.draw_end);
@@ -211,14 +199,77 @@ void		ft_ray_side_dist(t_ray *ray)
 	}
 }
 
-t_texture	*ft_get_sprite_texture(t_data *data, t_sprite *sprite)
+int			ft_get_gridx(double a, int sections)
 {
+	double	sector;
+
+	sector = 360 / sections;
+	a += sector / 2;
+	//printf("  a_mod: %f\n", a);
+	if ((int)(a * 10) >= 0)
+	{
+	//	printf("  positivo\n");
+		return ((int)(a / sector));
+	}
+	a *= -1;
+	//printf("  negativo\n");
+	return (7 - (int)(a / sector));	
+}
+
+int			ft_get_gridy(t_data *data, t_sprite *s, int states)
+{
+	int n;
+
+	if (!s->moved)
+		return (0);
+	n = data->animation_cycle / (states - 1);
+	//printf("\n\nret %d\n", data->animation_num / n + 1);
+	//printf("n %d\n", n);
+	//printf("animation_num %d\n", data->animation_num);
+	//if (data->animation_num / n + 1 > 4)
+	//	getchar();
+	return (data->animation_num / n + 1);
+}
+t_texture	*ft_get_sprite_texture(t_data *data, t_sprite *s)
+{
+	t_player	*p;
+	t_texture	*t;
+	double		a;
+	double		sector;
+	int		x_grid;
+	int			y_grid;
+
+	//a = atan2(ray->dir_y, ray->dir_x) * 180 / M_PI + 90;
+	p = data->player;
+	t = &data->sprite_tex_buffer[s->texture];
+	t->offset = 0;
 	//printf("tex: %d -- tex_num: %d\n", sprite->texture, data->sprite_tex_num);
-	if (sprite->texture >= data->sprite_tex_num)
+	if (s->texture >= data->sprite_tex_num)
 		ft_cub_error();
-	if (sprite->type == 0)
-		return (&data->sprite_tex_buffer[sprite->texture]);
-	return (0);
+	if (s->type == 0)
+		return (t);
+	//double angle = atan2(p2y, p2x) - atan2(p1y, p1x);
+	//6,28319 en radianes 360
+	sector = 360 / t->a_directions;
+	a = ((atan2(s->dir_y, s->dir_y) * 180 / M_PI + 90) - (atan2(p->dir_y, p->dir_x) * 180 / M_PI + 90));
+	//a *= a > 0 ? 1 : -2;
+	//printf("a: %f\na_mod %f\n", a, a + 45/2);
+	//x_grid = a / sector;
+	//a = 0;
+	//printf("x_grid %f\n", x_grid);
+	//x_grid = x_grid > t->a_directions ? t->a_directions : x_grid;
+	//x_grid = x_grid * 10 >= 0 ? x_grid : (int)x_grid + t->a_directions - 1;
+
+	y_grid = ft_get_gridy(data, s, t->a_states);
+	//printf("grid_y %d\n", y_grid);
+	x_grid = ft_get_gridx(a, t->a_directions);
+	//printf("diff: %f, a_state: %f\n", a, x_grid);
+
+
+	printf("y_grid: %d adds %d\n", y_grid, y_grid * (t->real_width) * (t->height));
+	printf("x_grid %d adds %d\n", x_grid, x_grid * t->width);
+	t->offset = x_grid * t->width + y_grid * t->real_width * (t->height);
+	return (t);
 }
 
 void		ft_paint_one_sprite(t_data *data, t_sprite *sprite)
@@ -273,7 +324,8 @@ void		ft_paint_one_sprite(t_data *data, t_sprite *sprite)
 	
 	sprite_h = abs((int)(data->res_y / transform_y));
 
-	draw_start_y = -sprite_h / 2 + data->res_y / 2;
+	draw_start_y = -(sprite_h/* + p->h*/) / 2 + data->res_y / 2;
+	//draw_start_y += p->h;
 	if (draw_start_y < 0)
 		draw_start_y = 0;
 	draw_end_y = sprite_h / 2 + data->res_y / 2;
@@ -330,7 +382,11 @@ void		ft_paint_one_sprite(t_data *data, t_sprite *sprite)
 					tex_y = t->height - 1;
 				if (tex_y < 0)
 					tex_y = 0;
-				int color = img[t->width * tex_y + tex_x];
+				//t->offset += t->real_width * tex_y + tex_x;
+			//	if (t->offset >= t->real_width * t->real_height)
+			//		t->offset = t->real_width * t->real_height - 1;
+				int color = img[t->offset + t->real_width * tex_y + tex_x];
+			//	int	color = img[t->offset];
 				if (color != 9961608)
 					screen[y * data->res_y + data->res_x - stripe] = color;
 				y++;
@@ -544,6 +600,6 @@ int			ft_render(t_data *data, t_mlx *mlx, t_player *player, int **map)
 	//printf("paint sprites\n");
 	ft_paint_sprites(data);
 	ft_update_hud(data);
-	mlx_put_image_to_window(mlx->ptr, mlx->window, mlx->screen, 0, 0);
+	//mlx_put_image_to_window(mlx->ptr, mlx->window, mlx->screen, 0, 0);
 	return (1);
 }

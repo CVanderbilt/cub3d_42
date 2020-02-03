@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/27 14:53:37 by eherrero          #+#    #+#             */
-/*   Updated: 2020/02/01 14:35:40 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/02/03 18:00:07 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -164,6 +164,13 @@ int		ft_loop_hook(void *params)
 			}
 //		printf("start_render\n");
 		ft_render(data, data->mlx, data->player, data->map);
+		ft_lifebar(data);
+		mlx_put_image_to_window(mlx->ptr, mlx->window, mlx->screen, 0, 0);
+		data->animation_num++;
+		if (data->animation_num >= data->animation_cycle)
+			data->animation_num = 0;
+//		printf("llega\n");
+		//getchar();
 //		printf("render_completed\n");
 	}
 	frame++;
@@ -245,6 +252,42 @@ void	ft_free_mlx(t_mlx *mlx)
 	//free(mlx->screen_data);
 }
 
+void	ft_lifebar(t_data *data)
+{
+	t_player	*p;
+	int			mod_y;
+	int			mod_x;
+	int			start_x;
+	int			start_y;
+	int			end_x;
+	int			end_y;
+	int			health_ptg;
+	int			*img;
+
+	p = data->player;
+	img = (int*)data->mlx->screen_data;
+	start_y = data->res_y / 15;
+	start_x = data->res_x / 15;
+	end_x = start_x + data->res_x / 3;
+	end_y = start_y + data->res_y / 15;
+	health_ptg = (end_x - start_x) * p->health / 100 + start_x;
+	mod_y = start_y;
+	while (mod_y <= end_y)
+	{
+		mod_x = start_x;
+		while (mod_x <= end_x)
+		{
+			if (mod_y == start_y || mod_y == end_y ||
+					mod_x == start_x || mod_x == end_x)
+				img[mod_y * data->res_x + mod_x] = 8355840;
+			else if (mod_x <= health_ptg)
+				img[mod_y * data->res_x + mod_x] = 16711680;
+			mod_x++;
+		}
+		mod_y++;
+	}
+}
+
 void	ft_update_hud(t_data *data)
 {
 	int			screen_x;
@@ -314,6 +357,7 @@ int		ft_key_hook(int keycode, void *params)
 	t_data *data;
 
 	data = (t_data*)params;
+	//printf("code: %d\n", keycode);
 	if (keycode == 53)
 	{
 		ft_free_map(data);

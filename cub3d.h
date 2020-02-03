@@ -13,6 +13,12 @@
 
 typedef	struct		s_texture
 {
+	int				offset;
+	int				animated;
+	int				a_directions;
+	int				a_states;
+	int				real_width;
+	int				real_height;
 	int				width;
 	int				height;
 	int				bpp;
@@ -57,7 +63,6 @@ typedef struct		s_player
 	double			plane_x;
 	double			plane_y;
 	//player stats
-	int				h;//h modifier for render (jump and crawl)
 	int				moving_forward;
 	int				moving_backward;
 	int				moving_left;
@@ -82,7 +87,11 @@ typedef struct		s_sprite
 	int				texture;
 	double			x;
 	double			y;
+	double			dir_x;
+	double			dir_y;
+	int				value;
 	int				type;
+	int				moved;
 	//t_ext_sprite	*ext;
 }					t_sprite;
 
@@ -117,10 +126,13 @@ typedef struct		s_data
 	t_mlx			*mlx;
 	t_player		*player;
 
+	int				animation_num;
+	int				animation_cycle;
 
 	t_texture		*hud;
 	t_texture		numbers[10];
 
+	t_texture		*healthbar;
 	int				sprite_tex_num;
 	t_texture		*sprite_tex_buffer;
 	
@@ -219,6 +231,7 @@ int					ft_map_error(void);
 int					ft_in_set(char c, char *set);
 int					ft_isdigit(int c);
 int					ft_isalpha(int c);
+int					ft_isalnum(int c);
 int					ft_isspace(char c);
 void				*ft_realloc(void *ptr, int prev_size, int new_size);
 void				*ft_calloc(size_t count, size_t size);
@@ -233,10 +246,11 @@ void				ft_atoi_rgb(char *str, int rgb[3]);
 void				ft_init_mlx(t_data *data, char *map_name);
 void				ft_init_texture(t_mlx *mlx, t_texture *tex, char *parth);
 void				ft_init_player(t_player *player, double r_speed, double m_speed);
-void				ft_init_data(t_data *data, char *map_name, double r_speed, double m_speed);
+void				ft_init_data(t_data *data, char *map_name, double r_speed, double m_speed, int cycles);
 int					ft_key_release_hook(int keycode, void *params);
 
 void				ft_update_hud(t_data *data);
+void				ft_lifebar(t_data *data);
 
 int					ft_atoi(const char *str);
 #endif
