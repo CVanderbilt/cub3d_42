@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/17 10:43:11 by eherrero          #+#    #+#             */
-/*   Updated: 2020/02/03 18:11:50 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/02/03 21:13:16 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,17 +66,21 @@ void	ft_init_texture(t_mlx *mlx, t_texture *t, char *path)
 		fd++;
 	printf("width\nfd: %d\nline: %s\n", fd, line + fd);
 	t->width = ft_atoi(line + fd);
-	printf("width: %d\n", t->width);
+	printf("width: %f\n", t->width);
 	while (ft_isdigit(line[fd]))
 		fd++;
 	while (!ft_isdigit(line[fd]))
 		fd++;
 	t->height = ft_atoi(line + fd);
-	printf("height %d\n", t->height);
+	printf("height %f\n", t->height);
 	t->bpp = 4;
 	t->size_line = t->bpp * t->width;
 	printf("image and addr\n");
-	t->img = mlx_xpm_file_to_image(mlx->ptr, path, &(t->width), &(t->height));
+	int w;
+	int h;
+	w = (int)t->width;
+	h = (int)t->height;
+	t->img = mlx_xpm_file_to_image(mlx->ptr, path, &w, &h);
 	t->addr = (int *)mlx_get_data_addr(t->img, &(t->bpp), &(t->size_line), &e);
 	printf("path %s, addr %p\n", path, t->addr);
 	//printf("end\n");
@@ -110,11 +114,11 @@ void	ft_init_textures(t_data *data)
 	mlx->skybox = (t_texture*)malloc(sizeof(t_texture));
 //	printf("malloc(ft_init_textures) %p\n", mlx->skybox);
 	data->hud = (t_texture*)malloc(sizeof(t_texture));
-	data->healthbar = (t_texture*)malloc(sizeof(t_texture));
+	//data->healthbar = (t_texture*)malloc(sizeof(t_texture));
 	//mlx->sprite1 = (t_texture*)malloc(sizeof(t_texture));
 	//mlx->floor = (t_texture*)malloc(sizeof(t_texture));
 	if (!mlx->n_img || !mlx->s_img || !mlx->e_img || !mlx->w_img
-			|| !mlx->skybox || !data->hud || !data->healthbar)
+			|| !mlx->skybox || !data->hud)
 		ft_memory_error();
 	ft_init_texture(mlx, mlx->n_img, "brick.xpm");
 	ft_init_texture(mlx, mlx->s_img, "stone.xpm");
@@ -122,7 +126,7 @@ void	ft_init_textures(t_data *data)
 	ft_init_texture(mlx, mlx->w_img, "wood.xpm");
 	ft_init_texture(mlx, mlx->skybox, "skybox.xpm");
 	ft_init_texture(mlx, data->hud, "hud_bar.xpm");
-	ft_init_texture(mlx, data->healthbar, "health_bar.xpm");
+	//ft_init_texture(mlx, data->healthbar, "health_bar.xpm");
 	//ft_init_texture(mlx, mlx->sprite1, "sprite.xpm");
 	//ft_init_texture(mlx, mlx->floor, "wood.xpm");
 }

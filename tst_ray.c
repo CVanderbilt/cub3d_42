@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/27 14:08:58 by eherrero          #+#    #+#             */
-/*   Updated: 2020/02/03 18:44:22 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/02/03 21:11:45 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -160,7 +160,7 @@ void		ft_paint_col(t_ray *ray, t_data *data)
 	//printf("  pinta desde %d hasta %d\n", ft.draw_s, ft.draw_end);
 	while (ft.draw_s++ < ft.draw_end)
 	{
-		ft.tex_y = (int)ft.tex_pos & (tex->height - 1);
+		ft.tex_y = (int)ft.tex_pos & ((int)tex->height - 1);
 		ft.tex_pos += ft.step;
 		ft.color = tex->addr[ft.mul + ft.tex_y];
 		//if (ray->col + (ft.draw_s - 1) * data->res_y >= data->res_y * data->res_x)
@@ -220,6 +220,7 @@ int			ft_get_gridy(t_data *data, t_sprite *s, int states)
 {
 	int n;
 
+	//return (0);
 	if (!s->moved)
 		return (0);
 	n = data->animation_cycle / (states - 1);
@@ -266,9 +267,12 @@ t_texture	*ft_get_sprite_texture(t_data *data, t_sprite *s)
 	//printf("diff: %f, a_state: %f\n", a, x_grid);
 
 
-	printf("y_grid: %d adds %d\n", y_grid, y_grid * (t->real_width) * (t->height));
-	printf("x_grid %d adds %d\n", x_grid, x_grid * t->width);
-	t->offset = x_grid * t->width + y_grid * t->real_width * (t->height);
+	printf("width %f height %f realw %d realh %d\n", t->width, t->height, t->real_width, t->real_height);
+	//getchar();
+
+	printf("y_grid: %d adds %f\n", y_grid, y_grid * (t->real_width) * t->height);
+	printf("x_grid %d adds %f\n", x_grid, (int)x_grid * t->width);
+	t->offset = (int)(x_grid * t->width) + (int)(y_grid * t->real_width * t->height);
 	return (t);
 }
 

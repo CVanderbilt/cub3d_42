@@ -19,8 +19,8 @@ typedef	struct		s_texture
 	int				a_states;
 	int				real_width;
 	int				real_height;
-	int				width;
-	int				height;
+	double			width;
+	double			height;
 	int				bpp;
 	int				size_line;
 	int				*addr;

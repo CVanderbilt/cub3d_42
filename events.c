@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/27 14:53:37 by eherrero          #+#    #+#             */
-/*   Updated: 2020/02/03 18:00:07 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/02/03 21:08:12 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -327,7 +327,7 @@ void	ft_update_hud(t_data *data)
 	//		printf("res_x %d, res_y %d\n", data->res_x, data->res_y);
 	//		printf("t_width %d\nt_height %d\naccede en %d\n", t->width, t->height, (int)y * t->width + (int)x);
 	//		printf("step_x %f, step_y %f\n", x_step, y_step);
-			color = img[(int)y * t->width + (int)x];
+			color = img[(int)y * (int)t->width + (int)x];
 	//		printf("aqui llega\n");
 			if (color != 9961608)
 			{
