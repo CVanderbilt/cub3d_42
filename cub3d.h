@@ -119,6 +119,7 @@ typedef struct		s_data
 
 
 	t_texture		*hud;
+	t_texture		numbers[10];
 
 	int				sprite_tex_num;
 	t_texture		*sprite_tex_buffer;
@@ -234,6 +235,8 @@ void				ft_init_texture(t_mlx *mlx, t_texture *tex, char *parth);
 void				ft_init_player(t_player *player, double r_speed, double m_speed);
 void				ft_init_data(t_data *data, char *map_name, double r_speed, double m_speed);
 int					ft_key_release_hook(int keycode, void *params);
+
+void				ft_update_hud(t_data *data);
 
 int					ft_atoi(const char *str);
 #endif

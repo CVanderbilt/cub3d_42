@@ -247,8 +247,12 @@ void	ft_free_mlx(t_mlx *mlx)
 
 void	ft_update_hud(t_data *data)
 {
-	int			x;
-	int			y;
+	int			screen_x;
+	int			screen_y;
+	double		x;
+	double		y;
+	double		x_step;
+	double		y_step;
 	t_texture	*t;
 	int			*img;
 	int			*screen;
@@ -256,20 +260,52 @@ void	ft_update_hud(t_data *data)
 
 	t = data->hud;
 	img = t->addr;
-	y = data->res_y - data->res_y / 5;
+	//printf("img %p\n", img);
+	screen_y = data->res_y - (int)data->res_y / 7;
+	y = 0;
+	//printf("screen_y %d\n", screen_y);
+	//exit(0);
 	screen = (int*)data->mlx->screen_data;
-	while (y < data->res_y)
-	{
+	x_step = (double)t->width / (double)data->res_x;
+	y_step = (double)t->height / ((double)data->res_y - screen_y);
+	//printf("1(while - 1)\n");
+	//printf("y_step %f\n", y_step);
+	//exit(0);
+	while (screen_y < data->res_y)
+	{		
+	//	printf("1(while)\n");
+		screen_x = 0;
 		x = 0;
-		while (x < data->res_x)
+		while (screen_x < data->res_x)
 		{
-			color = img[(y / data->res_y) * t->height * t->width + (x / data->res_x) * t->width];
+	//		printf("screen_x: %d, screem_y: %d\n", screen_x, screen_y);
+	//		printf("tex_x: %f, tex_y: %f\n", x, y);
+	//		printf("1(while + 1)\n");
+	//		printf("res_x %d, res_y %d\n", data->res_x, data->res_y);
+	//		printf("t_width %d\nt_height %d\naccede en %d\n", t->width, t->height, (int)y * t->width + (int)x);
+	//		printf("step_x %f, step_y %f\n", x_step, y_step);
+			color = img[(int)y * t->width + (int)x];
+	//		printf("aqui llega\n");
 			if (color != 9961608)
-				screen[y * data->res_x + x] = color;
-			x++;
+			{
+				//printf("entra\n");
+			//	printf("screen_y %d, screen_x %d\n", screen_y, screen_x);
+				screen[screen_x + data->res_x * screen_y] = color;
+			//	printf("llega\n");
+			}
+
+			x += x_step;
+			screen_x++;
+			if (x >= t->width)
+				x = t->width - 1;
 		}
-		y++;
+		//exit(0);
+		y += y_step;
+		screen_y++;
+		if (y >= t->height)
+			y = t->height - 1;
 	}
+	//exit(0);
 }
 
 int		ft_key_hook(int keycode, void *params)
@@ -295,6 +331,6 @@ int		ft_key_hook(int keycode, void *params)
 		exit(0);
 	}
 	ft_check_movement(data, keycode, 1);
-	ft_update_hud(data);
+	//ft_move_enemies(data);
 	return (0);
 }

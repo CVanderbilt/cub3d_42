@@ -213,7 +213,7 @@ void		ft_ray_side_dist(t_ray *ray)
 
 t_texture	*ft_get_sprite_texture(t_data *data, t_sprite *sprite)
 {
-	printf("tex: %d -- tex_num: %d\n", sprite->texture, data->sprite_tex_num);
+	//printf("tex: %d -- tex_num: %d\n", sprite->texture, data->sprite_tex_num);
 	if (sprite->texture >= data->sprite_tex_num)
 		ft_cub_error();
 	if (sprite->type == 0)
@@ -250,12 +250,12 @@ void		ft_paint_one_sprite(t_data *data, t_sprite *sprite)
 	int			*screen;
 	int			y;
 
-	//printf("  pinta una\n");
+//	printf("  pinta una\n");
 	screen =(int*)data->mlx->screen_data;
 
-	printf("intenta sacar textura\n");
+//	printf("intenta sacar textura\n");
 	t = ft_get_sprite_texture(data, sprite);
-	printf("la saca\n");
+	//printf("la saca\n");
 	img = t->addr;
 
 	p = data->player;
@@ -289,6 +289,10 @@ void		ft_paint_one_sprite(t_data *data, t_sprite *sprite)
 	if (draw_end_x >= data->res_x)
 		draw_end_x = data->res_x - 1;
 	stripe = draw_start_x;
+	if (tex_x >= t->width)
+		tex_x = t->width - 1;
+	if (tex_x < 0)
+		tex_x = 0;
 //	printf("va a entrar a bucle\n");
 //	printf("pinta desde x(%d a %d) y desde y(%d a %d)\n", draw_start_x, draw_end_x ,draw_start_y, draw_end_y);
 	while (stripe < draw_end_x)
@@ -296,8 +300,8 @@ void		ft_paint_one_sprite(t_data *data, t_sprite *sprite)
 	//	printf("stripe: %d\n", stripe);
 		tex_x = (int)(256 * (stripe - (-sprite_w / 2 + sprite_screen_x)) * t->width / sprite_w) / 256;
 		y = draw_start_y;
-//		printf("tex_x %d\n", tex_x);
-//	printf("pinta desde x(%d a %d) y desde y(%d a %d)\n", draw_start_x, draw_end_x ,draw_start_y, draw_end_y);
+	//	printf("tex_x %d\n", tex_x);
+	//printf("pinta desde x(%d a %d) y desde y(%d a %d)\n", draw_start_x, draw_end_x ,draw_start_y, draw_end_y);
 		if (transform_y > 0 && stripe > 0 && stripe < data->res_x && transform_y < data->buffer_z[stripe])
 			while (y < draw_end_y)
 			{
@@ -321,7 +325,11 @@ void		ft_paint_one_sprite(t_data *data, t_sprite *sprite)
 			//	printf(" d %d\n", d);
 				//printf(" t->width %d\n", t->width);
 			//	printf(" tex_y %d\n", tex_y);
-				//printf(" tex_x %d\n", tex_x);
+			//	printf(" tex_x %d\n", tex_x);
+				if (tex_y >= t->height)
+					tex_y = t->height - 1;
+				if (tex_y < 0)
+					tex_y = 0;
 				int color = img[t->width * tex_y + tex_x];
 				if (color != 9961608)
 					screen[y * data->res_y + data->res_x - stripe] = color;
@@ -329,7 +337,7 @@ void		ft_paint_one_sprite(t_data *data, t_sprite *sprite)
 			}
 		stripe++;
 	}
-//	printf("  acaba una\n");
+	//printf("  acaba una\n");
 
 }
 
@@ -535,6 +543,7 @@ int			ft_render(t_data *data, t_mlx *mlx, t_player *player, int **map)
 	}
 	//printf("paint sprites\n");
 	ft_paint_sprites(data);
+	ft_update_hud(data);
 	mlx_put_image_to_window(mlx->ptr, mlx->window, mlx->screen, 0, 0);
 	return (1);
 }

@@ -26,6 +26,9 @@ void	ft_init_player(t_player *player, double r_speed, double m_speed)
 	player->rot_speed = r_speed;
 	player->mov_speed = m_speed;
 
+	player->health = 100;
+	player->ammo = 8;
+
 	player->moving_forward = 0;
 	player->moving_backward = 0;
 	player->moving_left = 0;
@@ -42,11 +45,11 @@ void	ft_init_texture(t_mlx *mlx, t_texture *t, char *path)
 
 
 	e = 1;
-	//printf("path: >%s<\n", path);
+	//printf("init_texture path: >%s<\n", path);
 	fd = open(path, O_RDONLY);
 	get_next_line(fd, &line);
 	//printf("readed 0 >%s<\n", line);
-//	printf("  free(ft_init-texture) %p\n", line);
+	//printf("  free(ft_init-texture) %p\n", line);
 	free(line);
 	get_next_line(fd, &line);
 	//printf("readed 1>%s<\n", line);
@@ -73,15 +76,16 @@ void	ft_init_texture(t_mlx *mlx, t_texture *t, char *path)
 	//printf("height %d\n", t->height);
 	t->bpp = 4;
 	t->size_line = t->bpp * t->width;
-	//printf("image and addr\n");
+	printf("image and addr\n");
 	t->img = mlx_xpm_file_to_image(mlx->ptr, path, &(t->width), &(t->height));
 	t->addr = (int *)mlx_get_data_addr(t->img, &(t->bpp), &(t->size_line), &e);
+	//printf("path %s, addr %p\n", t->addr);
 	//printf("end\n");
-//	printf("  free(ft_init_texture2) %p\n", line);
+	//printf("  free(ft_init_texture2) %p\n", line);
 	free(line);
 	while (get_next_line(fd, &line) > 0)
 		{
-//			printf("  free(ft_init_texture3) %p\n", line);
+	//		printf("  free(ft_init_texture3) %p\n", line);
 			free(line);
 		}
 	//printf("  free(ft_init_texture4) %p\n", line);
@@ -178,12 +182,27 @@ void	ft_init_mlx(t_data *data, char *map_name)
 	//printf("init_mlx 7\n");
 }
 
+void	ft_init_numbers(t_data *data)
+{
+	ft_init_texture(data->mlx, &data->numbers[0], "numbers/zero.xpm");
+	ft_init_texture(data->mlx, &data->numbers[1], "numbers/one.xpm");
+	ft_init_texture(data->mlx, &data->numbers[2], "numbers/two.xpm");
+	ft_init_texture(data->mlx, &data->numbers[3], "numbers/three.xpm");
+	ft_init_texture(data->mlx, &data->numbers[4], "numbers/four.xpm");
+	ft_init_texture(data->mlx, &data->numbers[5], "numbers/five.xpm");
+	ft_init_texture(data->mlx, &data->numbers[6], "numbers/six.xpm");
+	ft_init_texture(data->mlx, &data->numbers[7], "numbers/zero.xpm");
+	ft_init_texture(data->mlx, &data->numbers[8], "numbers/zero.xpm");
+	ft_init_texture(data->mlx, &data->numbers[9], "numbers/nine.xpm");
+}
+
 void	ft_init_data(t_data *data, char *map_name, double rsp, double msp)
 {
 	t_player	*player;
 	t_mlx		*mlx;
 
-	//printf("init_data\n");
+	printf("init_data\n");
+
 	player = (t_player*)malloc(sizeof(t_player));
 //	printf("malloc(ft_init_data) %p\n", player);
 	mlx = (t_mlx*)malloc(sizeof(t_mlx));
@@ -207,16 +226,19 @@ void	ft_init_data(t_data *data, char *map_name, double rsp, double msp)
 	ft_get_map(map_name, data);
 	data->buffer_z = (double*)malloc(data->res_x * sizeof(double));
 	//getchar();
-//	printf("malloc(ft_init_data) %p\n", data->buffer_z);
+	printf("malloc(ft_init_data) %p\n", data->buffer_z);
 	if (!data->buffer_z)
 		ft_memory_error();
 	//getchar();
 	data->hud = (t_texture*)malloc(sizeof(t_texture));
 	if (!data->hud)
 		ft_memory_error();
-	ft_init_texture(data->mlx, data->hud, "hud.xpm");
 	ft_init_mlx(data, map_name);
+	ft_init_texture(data->mlx, data->hud, "hud_bar.xpm");
+	printf("init numbers\n");
+	ft_init_numbers(data);//                      <-- init numbers
 	/////getchar();
+	printf("init data end\n");
 }
 
 void	ft_loop(t_data *data)
@@ -229,8 +251,8 @@ void	ft_loop(t_data *data)
 	mlx_hook(mlx->window, 3, 0, ft_key_release_hook, data);
 	mlx_loop_hook(mlx->ptr, ft_loop_hook, data);
 	//printf("end_loop\n");
-	printf("mlx->ptr %p\n", mlx->ptr);
-	printf("entra mlx_loop\n");
+//	printf("mlx->ptr %p\n", mlx->ptr);
+//	printf("entra mlx_loop\n");
 	mlx_loop(mlx->ptr);
 }
 
@@ -240,10 +262,10 @@ int		main(int argc, char **argv)
 	t_player	*p;
 
 	//data.sprites_num = 2;
-	ft_init_data(&data, "map.cub", 0.02, 0.1);
+	ft_init_data(&data, "map.cub", 0.01, 0.02);
 
 
-	//printf("sprites: %d\n", data.sprites_num);
+	printf("sprites: %d\n", data.sprites_num);
 	//printf("sprite: %p\n", data.sprite_buffer);
 	//printf("  path1: %s\n", data.sprite_buffer[0].texture_path);
 	//printf("  x: %f, y: %f\n", data.sprite_buffer[0].x, data.sprite_buffer[0].y);
@@ -259,7 +281,9 @@ int		main(int argc, char **argv)
 	{
 		printf("tex %d: %d\n", i, data.sprite_tex_buffer[i].width);
 	}*/
-	ft_render(&data, data.mlx, data.player, data.map);
+printf("11\n");	
+ft_render(&data, data.mlx, data.player, data.map);
+printf("11\n");	
 	printf("end_first_render\n");
 	ft_loop(&data);
 	return (0);
