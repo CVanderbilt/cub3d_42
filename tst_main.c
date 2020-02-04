@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/17 10:43:11 by eherrero          #+#    #+#             */
-/*   Updated: 2020/02/03 21:13:16 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/02/04 21:40:57 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,6 +96,7 @@ void	ft_init_texture(t_mlx *mlx, t_texture *t, char *path)
 	close(fd);
 	t->real_width = t->width;
 	t->real_height = t->height;
+	printf("tex_end\n\n");
 }
 
 void	ft_init_textures(t_data *data)
@@ -263,6 +264,31 @@ void	ft_loop(t_data *data)
 	mlx_loop(mlx->ptr);
 }
 
+void	ft_init_soldier(t_data *data)
+{
+	t_texture *t;
+	ft_init_texture(data->mlx, &data->soldier_anim[0], "soldier_anim/soldier_idle.xpm");
+	ft_init_texture(data->mlx, &data->soldier_anim[1], "soldier_anim/soldier_walk_1.xpm");
+	ft_init_texture(data->mlx, &data->soldier_anim[2], "soldier_anim/soldier_walk2.xpm");
+	ft_init_texture(data->mlx, &data->soldier_anim[3], "soldier_anim/soldier_walk3.xpm");
+	ft_init_texture(data->mlx, &data->soldier_anim[4], "soldier_anim/soldier_walk4.xpm");
+	t = &(data->soldier_anim[0]);
+	t->width = 64;
+	//t->real_width = 512;
+	t = &(data->soldier_anim[1]);
+	t->width = 64;
+	//t->real_width = 512;
+	t = &(data->soldier_anim[2]);
+	t->width = 64;
+	//t->real_width = 512;
+	t = &(data->soldier_anim[3]);
+	t->width = 64;
+	//t->real_width = 512;
+	t = &(data->soldier_anim[4]);
+	t->width = 64;
+	//t->real_width = 512;
+}
+
 int		main(int argc, char **argv)
 {
 	t_data		data;
@@ -288,7 +314,9 @@ int		main(int argc, char **argv)
 	{
 		printf("tex %d: %d\n", i, data.sprite_tex_buffer[i].width);
 	}*/
-printf("11\n");	
+	ft_init_soldier(&data);
+	//exit(0);
+	printf("11\n");	
 ft_render(&data, data.mlx, data.player, data.map);
 printf("11\n");	
 	printf("end_first_render\n");

@@ -15,9 +15,8 @@ C 123,23,0
 T sprite.xpm
 T column.xpm
 T ammo.xpm
-TA 8 5 soldier.xpm
 
-S  9 16 3 H 1 0
+S  9 16 0 H 1 0
 
 
 111111111111111111111111111111111111111111

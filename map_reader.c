@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/27 13:15:57 by eherrero          #+#    #+#             */
-/*   Updated: 2020/02/03 20:54:36 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/02/04 21:51:07 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -226,6 +226,7 @@ void			ft_sprite_extra_data(char *str, t_sprite *sprite ,int i)
 		ft_cub_error();
 	if (sprite->type == 0)
 		return ;
+	//sprite->texture = -1;
 	i++;
 	if (!ft_isspace(str[i]))
 		ft_cub_error();

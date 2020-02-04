@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/27 14:08:58 by eherrero          #+#    #+#             */
-/*   Updated: 2020/02/03 21:11:45 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/02/04 21:55:26 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -199,11 +199,11 @@ void		ft_ray_side_dist(t_ray *ray)
 	}
 }
 
-int			ft_get_gridx(double a, int sections)
+int			ft_get_gridx(double a)
 {
 	double	sector;
 
-	sector = 360 / sections;
+	sector = 360 / 8;
 	a += sector / 2;
 	//printf("  a_mod: %f\n", a);
 	if ((int)(a * 10) >= 0)
@@ -231,6 +231,28 @@ int			ft_get_gridy(t_data *data, t_sprite *s, int states)
 	//	getchar();
 	return (data->animation_num / n + 1);
 }
+
+t_texture	*ft_select_moving_tex(t_data *data)
+{
+	int n;
+
+	//printf("1\n");
+	n = data->animation_cycle / 4;
+	//printf("2\n");
+	n = data->animation_num / n + 1;
+	printf("n = %d\n", n);
+	return (&data->soldier_anim[n]);
+	if (n == 0)
+		return (&data->soldier_anim[1]);
+	if (n == 1)
+		return (&data->soldier_anim[2]);
+	if (n == 2)
+		return (&data->soldier_anim[3]);
+	if (n == 3)
+		return (&data->soldier_anim[4]);
+	return (&data->soldier_anim[0]);
+}
+
 t_texture	*ft_get_sprite_texture(t_data *data, t_sprite *s)
 {
 	t_player	*p;
@@ -242,6 +264,10 @@ t_texture	*ft_get_sprite_texture(t_data *data, t_sprite *s)
 
 	//a = atan2(ray->dir_y, ray->dir_x) * 180 / M_PI + 90;
 	p = data->player;
+	//if (
+	
+	
+	
 	t = &data->sprite_tex_buffer[s->texture];
 	t->offset = 0;
 	//printf("tex: %d -- tex_num: %d\n", sprite->texture, data->sprite_tex_num);
@@ -261,18 +287,19 @@ t_texture	*ft_get_sprite_texture(t_data *data, t_sprite *s)
 	//x_grid = x_grid > t->a_directions ? t->a_directions : x_grid;
 	//x_grid = x_grid * 10 >= 0 ? x_grid : (int)x_grid + t->a_directions - 1;
 
-	y_grid = ft_get_gridy(data, s, t->a_states);
+	//y_grid = ft_get_gridy(data, s, t->a_states);
 	//printf("grid_y %d\n", y_grid);
-	x_grid = ft_get_gridx(a, t->a_directions);
+	x_grid = ft_get_gridx(a);
 	//printf("diff: %f, a_state: %f\n", a, x_grid);
-
-
+	t = s->moved ? ft_select_moving_tex(data) : &data->soldier_anim[0];
+	
 	printf("width %f height %f realw %d realh %d\n", t->width, t->height, t->real_width, t->real_height);
 	//getchar();
 
-	printf("y_grid: %d adds %f\n", y_grid, y_grid * (t->real_width) * t->height);
+	//printf("y_grid: %d adds %f\n", y_grid, y_grid * (t->real_width) * t->height);
 	printf("x_grid %d adds %f\n", x_grid, (int)x_grid * t->width);
-	t->offset = (int)(x_grid * t->width) + (int)(y_grid * t->real_width * t->height);
+	t->offset = (int)(x_grid * t->width);
+	printf("offset: %d\n", t->offset);
 	return (t);
 }
 
@@ -389,6 +416,7 @@ void		ft_paint_one_sprite(t_data *data, t_sprite *sprite)
 				//t->offset += t->real_width * tex_y + tex_x;
 			//	if (t->offset >= t->real_width * t->real_height)
 			//		t->offset = t->real_width * t->real_height - 1;
+				//printf("???\n");
 				int color = img[t->offset + t->real_width * tex_y + tex_x];
 			//	int	color = img[t->offset];
 				if (color != 9961608)

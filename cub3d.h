@@ -129,6 +129,8 @@ typedef struct		s_data
 	int				animation_num;
 	int				animation_cycle;
 
+	t_texture		soldier_anim[5];
+
 	t_texture		*hud;
 	t_texture		numbers[10];
 
@@ -251,6 +253,7 @@ int					ft_key_release_hook(int keycode, void *params);
 
 void				ft_update_hud(t_data *data);
 void				ft_lifebar(t_data *data);
+void				ft_init_soldier(t_data *data);
 
 int					ft_atoi(const char *str);
 #endif
