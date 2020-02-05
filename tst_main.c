@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/17 10:43:11 by eherrero          #+#    #+#             */
-/*   Updated: 2020/02/04 21:40:57 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/02/05 21:14:02 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,7 @@ void	ft_init_player(t_player *player, double r_speed, double m_speed)
 
 	player->health = 45;
 	player->ammo = 8;
+	player->move_them = 0;
 
 	player->moving_forward = 0;
 	player->moving_backward = 0;
@@ -206,6 +207,26 @@ void	ft_init_numbers(t_data *data)
 	ft_init_texture(data->mlx, &data->numbers[9], "numbers/nine.xpm");
 }
 
+void	ft_init_extra_maps(t_data *data)
+{
+	int		**c_map;
+	t_arrow	**a_map;
+	int		i;
+
+	i = -1;
+	c_map = (int**)malloc(sizeof(int*) * data->map_height);
+	a_map = (t_arrow**)malloc(sizeof(t_arrow*) * data->map_height);//filas popr columnas ??
+	if (!a_map || !c_map)
+		ft_memory_error();
+	while (++i < data->map_height)
+	{
+		if (!(c_map[i] = (int*)malloc(sizeof(int) * data->map_width)))
+			ft_memory_error();
+		if (!(a_map[i] = (t_arrow*)malloc(sizeof(t_arrow) * data->map_width)))
+			ft_memory_error();
+	}
+}
+
 void	ft_init_data(t_data *data, char *map_name, double rsp, double msp, int cycles)
 {
 	t_player	*player;
@@ -245,6 +266,7 @@ void	ft_init_data(t_data *data, char *map_name, double rsp, double msp, int cycl
 	ft_init_mlx(data, map_name);
 	printf("init numbers\n");
 	ft_init_numbers(data);//                      <-- init numbers
+	ft_init_extra_maps(data);
 	/////getchar();
 	printf("init data end\n");
 }
@@ -268,7 +290,7 @@ void	ft_init_soldier(t_data *data)
 {
 	t_texture *t;
 	ft_init_texture(data->mlx, &data->soldier_anim[0], "soldier_anim/soldier_idle.xpm");
-	ft_init_texture(data->mlx, &data->soldier_anim[1], "soldier_anim/soldier_walk_1.xpm");
+	ft_init_texture(data->mlx, &data->soldier_anim[1], "soldier_anim/soldier_walk1.xpm");
 	ft_init_texture(data->mlx, &data->soldier_anim[2], "soldier_anim/soldier_walk2.xpm");
 	ft_init_texture(data->mlx, &data->soldier_anim[3], "soldier_anim/soldier_walk3.xpm");
 	ft_init_texture(data->mlx, &data->soldier_anim[4], "soldier_anim/soldier_walk4.xpm");

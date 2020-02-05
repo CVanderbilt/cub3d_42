@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/27 14:08:58 by eherrero          #+#    #+#             */
-/*   Updated: 2020/02/04 21:55:26 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/02/05 18:39:27 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -240,7 +240,7 @@ t_texture	*ft_select_moving_tex(t_data *data)
 	n = data->animation_cycle / 4;
 	//printf("2\n");
 	n = data->animation_num / n + 1;
-	printf("n = %d\n", n);
+	//printf("n = %d\n", n);
 	return (&data->soldier_anim[n]);
 	if (n == 0)
 		return (&data->soldier_anim[1]);
@@ -278,7 +278,7 @@ t_texture	*ft_get_sprite_texture(t_data *data, t_sprite *s)
 	//double angle = atan2(p2y, p2x) - atan2(p1y, p1x);
 	//6,28319 en radianes 360
 	sector = 360 / t->a_directions;
-	a = ((atan2(s->dir_y, s->dir_y) * 180 / M_PI + 90) - (atan2(p->dir_y, p->dir_x) * 180 / M_PI + 90));
+	a = ((atan2(s->dir_y, s->dir_x) * 180 / M_PI + 90) - (atan2(p->dir_y, p->dir_x) * 180 / M_PI + 90));
 	//a *= a > 0 ? 1 : -2;
 	//printf("a: %f\na_mod %f\n", a, a + 45/2);
 	//x_grid = a / sector;
@@ -293,13 +293,17 @@ t_texture	*ft_get_sprite_texture(t_data *data, t_sprite *s)
 	//printf("diff: %f, a_state: %f\n", a, x_grid);
 	t = s->moved ? ft_select_moving_tex(data) : &data->soldier_anim[0];
 	
-	printf("width %f height %f realw %d realh %d\n", t->width, t->height, t->real_width, t->real_height);
+	//printf("width %f height %f realw %d realh %d\n", t->width, t->height, t->real_width, t->real_height);
 	//getchar();
 
 	//printf("y_grid: %d adds %f\n", y_grid, y_grid * (t->real_width) * t->height);
-	printf("x_grid %d adds %f\n", x_grid, (int)x_grid * t->width);
+	//printf("x_grid %d adds %f\n", x_grid, (int)x_grid * t->width);
+	if (x_grid <= 3)
+		x_grid += 4;
+	else
+		x_grid -= 4;	
 	t->offset = (int)(x_grid * t->width);
-	printf("offset: %d\n", t->offset);
+	//printf("offset: %d\n", t->offset);
 	return (t);
 }
 
@@ -343,6 +347,7 @@ void		ft_paint_one_sprite(t_data *data, t_sprite *sprite)
 	p = data->player;
 	sprite_x = sprite->x - p->x;
 	sprite_y = sprite->y - p->y;
+//	printf("paint_sprite x: %f, y: %d\n", sprite->x, sprite->y);
 	inv_det = 1.0 / (p->plane_x * p->dir_y - p->plane_y * p->dir_x);
 	
 	transform_x = inv_det * (p->dir_y * sprite_x - p->dir_x * sprite_y);

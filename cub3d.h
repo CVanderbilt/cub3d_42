@@ -47,6 +47,8 @@ typedef struct		s_mlx
 
 typedef struct		s_player
 {
+	int				move_them;
+
 	int				health;
 	int				ammo;
 	int				kk;
@@ -121,6 +123,15 @@ typedef struct		s_ray
 	int				side; //was a NS or a EW wall hit?
 }					t_ray;
 
+typedef struct		s_arrow
+{
+	int				x;
+	int				y;
+	int				dir_x;
+	int				dir_y;
+	int				num;//con el array no hace falta?
+}					t_arrow;
+
 typedef struct		s_data
 {
 	t_mlx			*mlx;
@@ -143,6 +154,10 @@ typedef struct		s_data
 
 	//void		*img;
 	int				**map;
+	int				**collision_map;
+	t_arrow			**arrow_map;
+	int				*arrow_history;
+
 	int				map_width;
 	int				map_height;
 	int				res_x;

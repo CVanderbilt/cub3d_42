@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/27 13:15:57 by eherrero          #+#    #+#             */
-/*   Updated: 2020/02/04 21:51:07 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/02/05 17:17:29 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -215,33 +215,40 @@ char			*ft_get_text(char *str)
 
 void			ft_sprite_extra_data(char *str, t_sprite *sprite ,int i)
 {
+	printf("extra sprite data\n");
 	while (ft_isdigit(str[i]))
 		i++;
+	printf("1\n");
 	if (!ft_isspace(str[i]))
 		ft_cub_error();
 	while (ft_isspace(str[i]))
 		i++;
 	sprite->type = str[i] == 'I' ? 0 : 1;
+	printf("2\n");
 	if (str[i] != 'I' && str[i] != 'H')
 		ft_cub_error();
 	if (sprite->type == 0)
 		return ;
 	//sprite->texture = -1;
 	i++;
+	printf("3\n");
 	if (!ft_isspace(str[i]))
 		ft_cub_error();
 	while (ft_isspace(str[i]))
 		i++;
-	if (!ft_isdigit(str[i]))
+	printf("4\n");
+	if (!ft_isdigit(str[i]) && str[i] != '-')
 		ft_cub_error();
 	sprite->dir_x = ft_atoi(str + i);
-	while (ft_isdigit(str[i]))
+	while (ft_isdigit(str[i]) || str[i] == '-')
 		i++;
+	printf("5 str[i] >%c<\n", str[i]);
 	if (!ft_isspace(str[i]))
 		ft_cub_error();
 	while (ft_isspace(str[i]))
 		i++;
-	if (!ft_isdigit(str[i]))
+	printf("6\n");
+	if (!ft_isdigit(str[i]) && str[i] != '-')
 		ft_cub_error();
 	sprite->dir_y = ft_atoi(str + i);
 }

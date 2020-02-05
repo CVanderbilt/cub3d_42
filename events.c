@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/27 14:53:37 by eherrero          #+#    #+#             */
-/*   Updated: 2020/02/03 21:08:12 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/02/05 18:21:34 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,15 +60,40 @@ int		ft_can_walk(t_data *data, int x, int y)
 	return (1);
 }
 
+void	ft_sprite_advance(t_data *data, int code, double step, t_sprite *s)
+{
+	int		mod;
+
+	mod = code == 1 || code == 3 ? -1 : 0;
+	printf("sprite advance");
+	if (code == 0 || code == 1)
+	{
+		printf(" if(1)");
+		//if (ft_can_walk(data, (int)(s->x + mod * s->dir_x * step), (int)s->y))
+			if (!data->map[(int)(s->x + mod * (s->dir_x) * step)][(int)(s->y)])
+			{
+				printf(" if(2) x = %f", s->x);
+				s->x += mod * s->dir_x * step;
+				printf(" -> %f", s->x);
+			}
+		//if (ft_can_walk(data, (int)s->x, (int)s->y + mod * s->dir_y * step))
+			if (!data->map[(int)(s->x)][(int)(s->y + mod * (s->dir_y) * step)])
+			{
+				printf(" if(3) y = %f", s->y);
+				s->y += mod * s->dir_y * step;
+				printf(" -> %f", s->y);
+			}
+	}
+	printf(" \n");
+}
+
 int		ft_player_advance(t_data *data, int code, double step)
 {
 	t_player	*p;
 	int			mod;
-	double		safe_step;
 
 
 	mod = code == 1 || code == 3 ? -1 : 1;
-	safe_step =1; // mod * 0.001;
 	p = data->player;
 	if (code == 0 || code == 1)
 	{
@@ -76,8 +101,8 @@ int		ft_player_advance(t_data *data, int code, double step)
 			if (!data->map[(int)(p->x + mod * (p->dir_x) * step)][(int)(p->y)])
 				p->x += mod * p->dir_x * step;
 		if (ft_can_walk(data, (int)p->x, (int)p->y + mod * p->dir_y * step))
-			if (!data->map[(int)(p->x)][(int)(p->y + mod * (p->dir_y * safe_step) * step)])
-			p->y += mod * p->dir_y * step;
+			if (!data->map[(int)(p->x)][(int)(p->y + mod * (p->dir_y) * step)])
+				p->y += mod * p->dir_y * step;
 	}
 	else if (code == 2 || code == 3)
 	{
@@ -136,6 +161,65 @@ int		ft_move(t_data *data, t_player *player)
 	return (moved);
 }
 
+void	ft_move_soldiers(t_data *data)
+{
+	int			i;
+	int			test_order;
+	t_sprite	*s;
+
+	i = 0;
+	test_order = data->player->move_them;
+	if (!data->player->move_them)
+		return ;
+	while (i < data->sprites_num)
+	{
+		s = &data->sprite_buffer[i];
+		if (s->type == 1)
+		{
+			if (test_order == 1)
+			{
+				s->dir_x = 1;
+				s->dir_y = 0;
+			} else if (test_order == 2)
+			{
+				s->dir_x = 1;
+				s->dir_y = 1;
+			} else if (test_order == 3)
+			{
+				s->dir_x = 0;
+				s->dir_y = 1;
+			} else if (test_order == 4)
+			{
+				s->dir_x = -1;
+				s->dir_y = 1;
+			} else if (test_order == 5)
+			{
+				s->dir_x = -1;
+				s->dir_y = 0;
+			}
+			else if (test_order == 6)
+			{
+				s->dir_x = -1;
+				s->dir_y = -1;
+			} else if (test_order == 7)
+			{
+				s->dir_x = 0;
+				s->dir_y = -1;
+			} else if (test_order == 8)
+			{
+				s->dir_x = 1;
+				s->dir_y = -1;
+			}
+		//	if (
+		}
+		//ft_sprite_advance(data, 0, data->player->mov_speed / 10, s);
+		printf("dir_x %f, dir_y %f p_dir_x %f, p_dir_y %f\n", s->dir_x, s->dir_y, data->player->dir_x, data->player->dir_y);
+		s->x += 0.01 * s->dir_x;
+		s->y += 0.01 * s->dir_y;
+		i++;
+	}
+}
+
 int		ft_loop_hook(void *params)
 {
 //	printf("???\n");
@@ -163,6 +247,7 @@ int		ft_loop_hook(void *params)
 				ft_player_rotate(player, player->rot_speed - 0.001, 0);
 			}
 //		printf("start_render\n");
+		ft_move_soldiers(data);
 		ft_render(data, data->mlx, data->player, data->map);
 		ft_lifebar(data);
 		mlx_put_image_to_window(mlx->ptr, mlx->window, mlx->screen, 0, 0);
@@ -359,6 +444,13 @@ int		ft_key_hook(int keycode, void *params)
 	data = (t_data*)params;
 	//printf("code: %d\n", keycode);
 	if (keycode == 53)
+	{
+		data->player->move_them++;
+		if (data->player->move_them > 8)
+			data->player->move_them = 1;
+		printf("value: %d\n", data->player->move_them);
+	}
+	else if (keycode == 53 && -1)
 	{
 		ft_free_map(data);
 	//	mlx_destroy_image(data->mlx->ptr, data->img);
