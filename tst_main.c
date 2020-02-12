@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/17 10:43:11 by eherrero          #+#    #+#             */
-/*   Updated: 2020/02/05 21:14:02 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/02/12 14:37:17 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -212,6 +212,7 @@ void	ft_init_extra_maps(t_data *data)
 	int		**c_map;
 	t_arrow	**a_map;
 	int		i;
+	int j;
 
 	i = -1;
 	c_map = (int**)malloc(sizeof(int*) * data->map_height);
@@ -220,11 +221,19 @@ void	ft_init_extra_maps(t_data *data)
 		ft_memory_error();
 	while (++i < data->map_height)
 	{
-		if (!(c_map[i] = (int*)malloc(sizeof(int) * data->map_width)))
+		c_map[i] = (int*)malloc(sizeof(int) * data->map_width);
+		a_map[i] = (t_arrow*)malloc(sizeof(t_arrow) * data->map_width);
+		if (!c_map[i] || !a_map[i])	
 			ft_memory_error();
-		if (!(a_map[i] = (t_arrow*)malloc(sizeof(t_arrow) * data->map_width)))
-			ft_memory_error();
+		j = -1;
+		while (++j < data->map_width)
+		{
+		//	printf("i %d, j: %d\n", i, j);
+			a_map[i][j].used = 0;
+		}
 	}
+	data->collision_map = c_map;
+	data->arrow_map = a_map;
 }
 
 void	ft_init_data(t_data *data, char *map_name, double rsp, double msp, int cycles)
@@ -265,7 +274,7 @@ void	ft_init_data(t_data *data, char *map_name, double rsp, double msp, int cycl
 	//getchar();
 	ft_init_mlx(data, map_name);
 	printf("init numbers\n");
-	ft_init_numbers(data);//                      <-- init numbers
+//	ft_init_numbers(data);//                      <-- init numbers
 	ft_init_extra_maps(data);
 	/////getchar();
 	printf("init data end\n");

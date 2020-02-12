@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/27 14:53:37 by eherrero          #+#    #+#             */
-/*   Updated: 2020/02/05 18:21:34 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/02/12 18:52:28 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,26 +65,26 @@ void	ft_sprite_advance(t_data *data, int code, double step, t_sprite *s)
 	int		mod;
 
 	mod = code == 1 || code == 3 ? -1 : 0;
-	printf("sprite advance");
+	//printf("sprite advance");
 	if (code == 0 || code == 1)
 	{
-		printf(" if(1)");
+//		printf(" if(1)");
 		//if (ft_can_walk(data, (int)(s->x + mod * s->dir_x * step), (int)s->y))
-			if (!data->map[(int)(s->x + mod * (s->dir_x) * step)][(int)(s->y)])
+		//	if (!data->map[(int)(s->x + mod * (s->dir_x) * step)][(int)(s->y)])
 			{
-				printf(" if(2) x = %f", s->x);
+//				printf(" if(2) x = %f", s->x);
 				s->x += mod * s->dir_x * step;
-				printf(" -> %f", s->x);
+//				printf(" -> %f", s->x);
 			}
 		//if (ft_can_walk(data, (int)s->x, (int)s->y + mod * s->dir_y * step))
-			if (!data->map[(int)(s->x)][(int)(s->y + mod * (s->dir_y) * step)])
+		//	if (!data->map[(int)(s->x)][(int)(s->y + mod * (s->dir_y) * step)])
 			{
-				printf(" if(3) y = %f", s->y);
+//				printf(" if(3) y = %f", s->y);
 				s->y += mod * s->dir_y * step;
-				printf(" -> %f", s->y);
+//				printf(" -> %f", s->y);
 			}
 	}
-	printf(" \n");
+//	printf(" \n");
 }
 
 int		ft_player_advance(t_data *data, int code, double step)
@@ -97,22 +97,37 @@ int		ft_player_advance(t_data *data, int code, double step)
 	p = data->player;
 	if (code == 0 || code == 1)
 	{
-		if (ft_can_walk(data, (int)(p->x + mod * p->dir_x * step), (int)p->y))
-			if (!data->map[(int)(p->x + mod * (p->dir_x) * step)][(int)(p->y)])
-				p->x += mod * p->dir_x * step;
-		if (ft_can_walk(data, (int)p->x, (int)p->y + mod * p->dir_y * step))
-			if (!data->map[(int)(p->x)][(int)(p->y + mod * (p->dir_y) * step)])
-				p->y += mod * p->dir_y * step;
+			//printf("intenta %d (x) (%d, %d); ", data->collision_map[(int)p->y][(int)(p->x + mod * p->dir_x * step)],
+	//		(int)p->y, (int)(p->x + mod * p->dir_x * step));
+		//if (data->collision_map[(int)p->y][(int)(p->x + mod * p->dir_x * step)] == 0)
+		if (!data->collision_map[(int)(p->x + mod * p->dir_x * step)][(int)p->y])
+		{
+			//printf("avanza a x -> %f\n", p->x + mod *p->dir_x * step);
+			p->x += mod * p->dir_x * step;
+		}
+		//else
+		//	printf("ha intentado %d (x)  ", data->collision_map[(int)p->y][(int)(p->x + mod * p->dir_x * step)]);
+		//printf("intenta %d (y) (%d, %d) ", data->collision_map[(int)(p->y + mod * p->dir_y * step)][(int)p->x],
+		//	(int)(p->y + mod * p->dir_y * step), (int)p->x);
+		//if (data->collision_map[(int)(p->y + mod * p->dir_y * step)][(int)p->x] == 0)
+		if (!data->collision_map[(int)p->x][(int)(p->y + mod * p->dir_y * step)])
+		{
+			//printf("avanza a y -> %f\n", p->y + mod *p->dir_y * step);
+			p->y += mod * p->dir_y * step;
+		}
+		//else
+	//		printf("ha intentado %d (y)  ", data->collision_map[(int)(p->y + mod * p->dir_y * step)][(int)p->x]  );
+
 	}
 	else if (code == 2 || code == 3)
 	{
-		if (!data->map[(int)(p->x - mod * p->dir_y * step)][(int)(p->y)])
-			if (ft_can_walk(data, (int)p->x - mod * p->dir_y * step, (int)p->y))
-				p->x -= mod * p->dir_y * step;
-		if (!data->map[(int)(p->x)][(int)(p->y + mod * p->dir_x * step)])
-			if (ft_can_walk(data, (int)p->x, (int)p->y + mod * p->dir_x * step))
-				p->y += mod * p->dir_x * step;
+		if (!data->collision_map[(int)(p->x - mod * p->dir_y * step)][(int)p->y])
+			p->x -= mod * p->dir_y * step;
+		if (!data->collision_map[(int)p->x][(int)(p->y + mod * p->dir_x * step)])
+			p->y += mod * p->dir_x * step;
 	}
+//	printf("pos x,y (%d, %d) map: %d c_map %d\n", (int)p->x, (int)p->y, data->map[(int)p->x][(int)p->y],
+//			data->collision_map[(int)p->x][(int)p->y]);
 	return (1);
 }
 
@@ -166,58 +181,239 @@ void	ft_move_soldiers(t_data *data)
 	int			i;
 	int			test_order;
 	t_sprite	*s;
+	double		f_x;
+	double		f_y;
+	int mod;
 
 	i = 0;
-	test_order = data->player->move_them;
-	if (!data->player->move_them)
-		return ;
+	//test_order = data->player->move_them;
+	//if (!data->player->move_them)
+	//	return ;
 	while (i < data->sprites_num)
 	{
 		s = &data->sprite_buffer[i];
 		if (s->type == 1)
 		{
-			if (test_order == 1)
+		//	printf("sprite s %d, pos %f %f\n", i, s->x, s->y);
+			f_x = s->x - (int)s->x;
+			f_y = s->y - (int)s->y;
+		//	printf("f_x %f f_y %f\n", f_x, f_y);
+			if (f_x >= 0.4 && f_y >= 0.4 && f_x <= 0.6 && f_y <= 0.6)
 			{
-				s->dir_x = 1;
-				s->dir_y = 0;
-			} else if (test_order == 2)
-			{
-				s->dir_x = 1;
-				s->dir_y = 1;
-			} else if (test_order == 3)
-			{
-				s->dir_x = 0;
-				s->dir_y = 1;
-			} else if (test_order == 4)
-			{
-				s->dir_x = -1;
-				s->dir_y = 1;
-			} else if (test_order == 5)
-			{
-				s->dir_x = -1;
-				s->dir_y = 0;
+				mod = !(data->collision_map[(int)s->x][(int)s->y]) ? -1 : 1;
+				s->dir_x = mod * data->arrow_map[(int)round(s->x)][(int)round(s->y)].dir_x;//	if (
+				s->dir_y = mod * data->arrow_map[(int)round(s->x)][(int)round(s->y)].dir_y;//	if (
 			}
-			else if (test_order == 6)
-			{
-				s->dir_x = -1;
-				s->dir_y = -1;
-			} else if (test_order == 7)
-			{
-				s->dir_x = 0;
-				s->dir_y = -1;
-			} else if (test_order == 8)
-			{
-				s->dir_x = 1;
-				s->dir_y = -1;
-			}
-		//	if (
+			//exit(0);
 		}
-		//ft_sprite_advance(data, 0, data->player->mov_speed / 10, s);
-		printf("dir_x %f, dir_y %f p_dir_x %f, p_dir_y %f\n", s->dir_x, s->dir_y, data->player->dir_x, data->player->dir_y);
-		s->x += 0.01 * s->dir_x;
-		s->y += 0.01 * s->dir_y;
+		ft_sprite_advance(data, 0, data->player->mov_speed / 10, s);
+	//	printf("dir_x %f, dir_y %f p_dir_x %f, p_dir_y %f\n", s->dir_x, s->dir_y, data->player->dir_x, data->player->dir_y);
+		//exit(0);
+		s->x += data->player->mov_speed * 1 / 4 * s->dir_x;
+		s->y += data->player->mov_speed * 1 / 4 * s->dir_y;
 		i++;
 	}
+}
+
+int		ft_try(t_data *data, int dir_x, int dir_y, int x, int y)
+{
+	t_arrow *s;
+
+//	printf("try %d %d dir %d %d\n", x, y, dir_x, dir_y);
+	if (x < 0 || y < 0 || x >= data->map_height || y >= data->map_width)
+	{
+		printf("x: %d y: %d\n", x, y);
+		return (0);
+	}
+	s = &data->arrow_map[x][y];
+	if (!s->used)
+	{
+	//	printf("set %d %d with %d %d\n", x, y, dir_x, dir_y);
+		s->used = 1;
+		data->arrow_map[x][y].dir_x = dir_x;
+		s->dir_y = dir_y;
+		if (data->collision_map[x][y])
+		{
+//			printf("  collide\n");
+			return (0);
+		}
+		return (1);
+	}
+//	printf("  used\n");
+	return (0);
+}
+
+void	ft_set_surrounding(t_data *data, t_coordinate *c, int index, int *arrows)
+{
+	int		**c_map;
+	t_arrow	***a_map;
+	int		x;
+	int		y;
+	int r;
+	t_coordinate *p;
+
+	c_map = data->collision_map;
+	a_map = &data->arrow_map;
+	x = c[index].x;
+	y = c[index].y;
+	//set e 0 a 4 arrows apuntando a (x, y)
+	//printf("start surroundings of (%d, %d) arrows %d\n", x, y, *arrows);
+//	printf("set surroundings of %d %d, with dir %d %d\n", x, y, data->arrow_map[x][y].dir_x, data->arrow_map[x][y].dir_y);
+	if ((ft_try(data, 1, 0, x - 1, y)))
+	{
+//		printf("  set  %d %d with %d %d\n", x - 1, y, (*a_map)[x - 1][y].dir_x, (*a_map)[x - 1][y].dir_y);
+		//if(r > 0)
+		{
+			(&c[*arrows])->x = x - 1;
+			(&c[*arrows])->y = y;
+			*arrows += 1;
+		}
+		//else
+		//	printf("obstaculo\n");
+	}
+	if ((ft_try(data, 0, 1, x, y - 1)))
+	{
+		//printf("  set %d %d\n", x - 1, y);
+//		printf("  set  %d %d with %d %d\n", x, y - 1, (*a_map)[x][y - 1].dir_x, (*a_map)[x][y - 1].dir_y);
+		//if (r > 0)
+		{
+			(&c[*arrows])->x = x;
+			(&c[*arrows])->y = y - 1;
+			*arrows += 1;
+		}
+		//else
+		//	printf("obstaculo\n");
+	}
+	if ((ft_try(data, -1, 0, x + 1, y)))
+	{
+		//printf("  set %d %d\n", x, y - 1);
+//		printf("  set  %d %d with %d %d\n", x + 1, y, (*a_map)[x + 1][y].dir_x, (*a_map)[x + 1][y].dir_y);
+		//if (r > 0)
+		{
+			(&c[*arrows])->x = x + 1;
+			(&c[*arrows])->y = y;
+			*arrows += 1;
+		}
+		//else
+		//	printf("obstaculo\n");
+	}
+	if  ((ft_try(data, 0, -1, x, y + 1)))
+	{
+		//printf(" set %d %d\n", x + 1, y);
+	//	printf("  set  %d %d with %d %d\n", x, y + 1, (*a_map)[y + 1][x].dir_x, (*a_map)[y + 1][x].dir_y);
+//		printf("  set  %d %d with %d %d\n", x, y + 1, (*a_map)[x][y + 1].dir_x, (*a_map)[x][y + 1].dir_y);
+		//if (r > 0)
+		{
+			(&c[*arrows])->x = x;
+			(&c[*arrows])->y = y + 1;
+			*arrows += 1;
+		}
+		//else
+		//	printf("obstaculo\n");
+	}
+}
+
+void	ft_reset_arrow_map(t_data *data)
+{
+	int		i;
+	int		j;
+	t_arrow	**a_map;
+
+	a_map = data->arrow_map;
+	i = -1;
+	while (++i < data->map_height)
+	{
+		j = -1;
+		while (++j < data->map_width)
+		{
+			//printf("i: %d j: %d\n", i, j);
+			(&a_map[i][j])->used = 0;
+		}
+	}
+}
+
+void	ft_fix_border(t_data *data)
+{
+	int i;
+	int j;
+
+	i = -1;
+	while (++i < data->map_width)
+	{
+		(&data->arrow_map[0][i])->dir_x = 1;
+		(&data->arrow_map[0][i])->dir_y = 0;
+		(&data->arrow_map[data->map_height - 1][i])->dir_x = -1;
+		(&data->arrow_map[data->map_height - 1][i])->dir_y = 0;
+
+	}
+}
+
+void	ft_update_arrow_map(t_data *data)
+{
+	int				i;
+	int				arrows;
+	t_arrow			**a_map;
+	t_coordinate	history[data->map_height * data->map_width];
+	
+	a_map = data->arrow_map;
+	//printf("height %d width %d total %d\n", data->map_height, data->map_width, data->map_height *data->map_width);
+	//exit (0);
+	history[0].x = (int)data->player->x;
+	history[0].y = (int)data->player->y;
+	(&a_map[(int)data->player->x][(int)data->player->y])->y = 0;
+	(&a_map[(int)data->player->x][(int)data->player->y])->x = 0;
+	i = 0;
+	arrows = 1;
+	ft_reset_arrow_map(data);
+	while (i < arrows)
+	{
+		ft_set_surrounding(data, history, i, &arrows);
+		//printf("%d\n",data->arrow_map[8][16].dir_x);
+		i++;
+	}
+	//exit(0);
+	ft_fix_border(data);
+	//printf("arrow_map fin\n");
+	//exit(0);
+}
+
+void	ft_update_extra_maps(t_data *data)
+{
+	t_sprite	*s;
+	int			**c_map;
+	int			y;
+	int			x;
+
+//	printf("----------update map----------\n");
+	c_map = data->collision_map;
+//	printf("c_map %p\n", c_map);
+	y = -1;
+	while (++y < data->map_height)
+	{
+	//	printf("fila %d\n", y);
+		x = -1;
+		while (++x < data->map_width)
+		{
+	//		printf("  columna %d\n", x);
+			c_map[y][x] = data->map[y][x];
+		}
+	}
+//	printf("sale del while\n");
+	y = -1;
+	s = data->sprite_buffer;
+//		printf("va a empezar while \n");
+	while (++y < data->sprites_num)
+	{
+//		printf("intenta sprite -%d-, (%d, %d) texture %d \n", s[y].comprobador, (int)(s[y].y), (int)(s[y].x), s[y].texture);
+//		s[y].y = s[y].back_y;
+//		s[y].x = s[y].back_x;
+//	printf("muere? ");
+		c_map[(int)s[y].x][(int)s[y].y] = 1;//he cambiadp x por y, fallaba cuaando x era 42 h puede ser > max w
+//	printf(" no\n");
+	}
+//	printf("update arrow start\n");
+	ft_update_arrow_map(data);
+//	printf("update arrow nd\n");
 }
 
 int		ft_loop_hook(void *params)
@@ -228,11 +424,13 @@ int		ft_loop_hook(void *params)
 	int		moved;
 	static int frame;
 
-//	printf("loophook_star\n");
+	//printf("loophook_start\n");
 	data = (t_data *)params;
 	t_player	*player = data->player; 
 	mlx = data->mlx;
+//	printf("1\n");
 	moved = ft_move(data, data->player);
+//	printf("2\n");
 	//mlx_clear_window(mlx->ptr, mlx->window);
 //	if (moved)
 	{
@@ -246,12 +444,21 @@ int		ft_loop_hook(void *params)
 			//	printf("ha corregido\n");
 				ft_player_rotate(player, player->rot_speed - 0.001, 0);
 			}
+//	printf("3\n");
 //		printf("start_render\n");
-		ft_move_soldiers(data);
+/////		ft_move_soldiers(data);
 		ft_render(data, data->mlx, data->player, data->map);
+//	printf("4\n");
 		ft_lifebar(data);
+//	printf("5\n");
 		mlx_put_image_to_window(mlx->ptr, mlx->window, mlx->screen, 0, 0);
+//	printf("5.1\n");
 		data->animation_num++;
+//	printf("5.2\n");
+		ft_update_extra_maps(data);
+//	printf("6\n");
+		ft_move_soldiers(data);            //<-- move soldiers
+//	printf("7\n");
 		if (data->animation_num >= data->animation_cycle)
 			data->animation_num = 0;
 //		printf("llega\n");
@@ -259,6 +466,7 @@ int		ft_loop_hook(void *params)
 //		printf("render_completed\n");
 	}
 	frame++;
+	//printf("fin loop_hook\n");
 	return (0);
 }
 
@@ -359,6 +567,7 @@ void	ft_lifebar(t_data *data)
 	mod_y = start_y;
 	while (mod_y <= end_y)
 	{
+		//printf("moved  \n");
 		mod_x = start_x;
 		while (mod_x <= end_x)
 		{
@@ -436,6 +645,57 @@ void	ft_update_hud(t_data *data)
 	//exit(0);
 }
 
+int		ft_is_soldier(t_data *data, int x, int y)
+{
+	int i;
+	t_sprite	s;
+
+	i = -1;
+	while (++i < data->sprites_num)
+	{
+		s = data->sprite_buffer[i];
+		if (s.type == 1)
+		{
+			if ((int)s.x == x && (int)s.y == y)
+				return (1);
+		}
+	}
+	return  (0);
+}
+
+void	ft_print_arrow(t_data *data, int x_a, int y_a)
+{
+	t_arrow **a_map;
+	int		**c_map;
+	
+	a_map = data->arrow_map;
+	c_map = data->collision_map;
+	//printf("print arrow y: %d x: %d\n", y_a, x_a);
+	int x = a_map[y_a][x_a].dir_x;
+	int y = a_map[y_a][x_a].dir_y;
+
+	//printf("(x %d y %d)", x, y);
+	if (ft_is_soldier(data, y_a, x_a))
+		printf("x");
+	else if (c_map[y_a][x_a])
+		printf("o");
+	else if (x)
+	{
+		if (x > 0)
+			printf("v");
+		else
+			printf("^");
+	}
+	else
+	{
+		if (y < 0)
+			printf("<");
+		else
+			printf(">");
+	}
+	//printf("(%2d,%2d)", a_map[y_a][x_a].dir_x, a_map[y_a][x_a].dir_y);
+}
+
 int		ft_key_hook(int keycode, void *params)
 {
 //	printf("pressed keycode: %d\n", keycode);
@@ -443,14 +703,27 @@ int		ft_key_hook(int keycode, void *params)
 
 	data = (t_data*)params;
 	//printf("code: %d\n", keycode);
-	if (keycode == 53)
-	{
-		data->player->move_them++;
+//	if (keycode == 53)
+//	{
+		/*data->player->move_them++;
 		if (data->player->move_them > 8)
 			data->player->move_them = 1;
-		printf("value: %d\n", data->player->move_them);
-	}
-	else if (keycode == 53 && -1)
+		printf("value: %d\n", data->player->move_them);*/
+		int y = -1;
+		printf("\n");
+		while (++y < data->map_height)
+		{
+			int x = -1;
+			while (++x < data->map_width)
+			{
+				//printf("print arrow (%d, %d)\n", x, y);
+				ft_print_arrow(data, x, y);
+			}
+			printf("\n");
+		}
+	//	exit(0);
+//	}
+	if (keycode == 53)
 	{
 		ft_free_map(data);
 	//	mlx_destroy_image(data->mlx->ptr, data->img);
@@ -467,6 +740,6 @@ int		ft_key_hook(int keycode, void *params)
 		exit(0);
 	}
 	ft_check_movement(data, keycode, 1);
-	//ft_move_enemies(data);
+//	ft_move_soldiers(data);
 	return (0);
 }

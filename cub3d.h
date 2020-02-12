@@ -89,11 +89,14 @@ typedef struct		s_sprite
 	int				texture;
 	double			x;
 	double			y;
+	double			back_x;
+	double			back_y;
 	double			dir_x;
 	double			dir_y;
 	int				value;
 	int				type;
 	int				moved;
+	int				comprobador;
 	//t_ext_sprite	*ext;
 }					t_sprite;
 
@@ -125,12 +128,18 @@ typedef struct		s_ray
 
 typedef struct		s_arrow
 {
-	int				x;
-	int				y;
+	int				x;  //al estar en un array2d sobra
+	int				y;  //al estar en un array2d sobra
 	int				dir_x;
 	int				dir_y;
-	int				num;//con el array no hace falta?
+	int				used;
 }					t_arrow;
+
+typedef struct		s_coordinate
+{
+	int				x;
+	int				y;
+}					t_coordinate;
 
 typedef struct		s_data
 {
@@ -156,7 +165,7 @@ typedef struct		s_data
 	int				**map;
 	int				**collision_map;
 	t_arrow			**arrow_map;
-	int				*arrow_history;
+	t_coordinate	*arrow_history;
 
 	int				map_width;
 	int				map_height;

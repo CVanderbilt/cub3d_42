@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/27 13:15:57 by eherrero          #+#    #+#             */
-/*   Updated: 2020/02/05 17:17:29 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/02/12 18:18:34 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -282,6 +282,12 @@ void			ft_set_sprite_data(char *str, t_sprite *sprite)
 		ft_cub_error();
 	sprite->texture = ft_atoi(str + i);
 	ft_sprite_extra_data(str, sprite, i);
+	sprite->comprobador = 15;
+	printf("sprite -%d- x: %f, y: %f\n", sprite->comprobador, sprite->x, sprite->y);
+	sprite->back_x = sprite->x;
+	sprite->back_y = sprite->y;
+	sprite->dir_x = 0;
+	sprite->dir_y = 1;
 	sprite->moved = 1;                    //QUITAR
 }
 
@@ -520,7 +526,7 @@ int				ft_first_line_check(int *line, int **tab, char *str, t_data *d)
 			return (ft_map_error());
 		ft.i++;
 	}
-	row = (int *)malloc(sizeof(int) * ft.i);
+	row = (int *)malloc(sizeof(int) * ft.count);//donde count ponia i
 //	printf("malloc(ft_first_line_check) %p\n", row);
 	d->map_width = !row ? ft_memory_error() : ft.count;
 	tab[0] = row;

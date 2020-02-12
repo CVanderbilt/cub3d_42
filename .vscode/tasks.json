@@ -1,0 +1,23 @@
+{
+    "tasks": [
+        {
+            "type": "shell",
+            "label": "gcc build active file",
+            "command": "gcc -g *.c -framework OpenGL -framework AppKit minilibX/libmlx.a -fsanitize=address",
+            "args": [],
+            "options": {
+                "cwd": ""
+            }
+        },
+        {
+            "type": "shell",
+            "label": "clean files",
+            "command": "rm a.out",
+            "args": [],
+            "options": {
+                "cwd": ""
+            }
+        }
+    ],
+    "version": "2.0.0"
+}
