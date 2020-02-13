@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/27 14:53:37 by eherrero          #+#    #+#             */
-/*   Updated: 2020/02/12 18:52:28 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/02/13 21:52:58 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,19 +62,34 @@ int		ft_can_walk(t_data *data, int x, int y)
 
 void	ft_sprite_advance(t_data *data, int code, double step, t_sprite *s)
 {
+	float	new_x;
+	float	new_y;
+
+//	printf("advance\n");
+	new_x = s->x + s->dir_x * step;
+	new_y = s->y + s->dir_y * step;
+	if (((int)new_x == (int)s->x && (int)new_y == (int)s->y) || !data->collision_map[(int)new_x][(int)new_y])
+	{
+		s->x = new_x;
+		s->y = new_y;
+	}
+}
+/*
+void	ft_sprite_advance(t_data *data, int code, double step, t_sprite *s)
+{
 	int		mod;
 
-	mod = code == 1 || code == 3 ? -1 : 0;
-	//printf("sprite advance");
+	mod = code == 1 || code == 3 ? -1 : 1;
+//	printf("sprite advance");
 	if (code == 0 || code == 1)
 	{
-//		printf(" if(1)");
+		printf(" if(1)");
 		//if (ft_can_walk(data, (int)(s->x + mod * s->dir_x * step), (int)s->y))
 		//	if (!data->map[(int)(s->x + mod * (s->dir_x) * step)][(int)(s->y)])
 			{
 //				printf(" if(2) x = %f", s->x);
 				s->x += mod * s->dir_x * step;
-//				printf(" -> %f", s->x);
+				printf(" -> %f", s->x);
 			}
 		//if (ft_can_walk(data, (int)s->x, (int)s->y + mod * s->dir_y * step))
 		//	if (!data->map[(int)(s->x)][(int)(s->y + mod * (s->dir_y) * step)])
@@ -85,7 +100,7 @@ void	ft_sprite_advance(t_data *data, int code, double step, t_sprite *s)
 			}
 	}
 //	printf(" \n");
-}
+}*/
 
 int		ft_player_advance(t_data *data, int code, double step)
 {
@@ -149,6 +164,7 @@ int		ft_move(t_data *data, t_player *player)
 	double	step;
 	double	a;
 	int		moved;
+
 	//printf("entra a ft_moive\n");
 	moved = 0;
 	step = player->mov_speed;
@@ -176,6 +192,89 @@ int		ft_move(t_data *data, t_player *player)
 	return (moved);
 }
 
+void	ft_activate_sprite(t_data *data, t_sprite *s)
+{
+	int i;
+	double dist;
+
+	i = -1;
+	while (++i < data->sprites_num)
+	{
+		if (s->type == 1 && s->state == 0)
+		{
+			if (fabs(data->player->x - s->x) + fabs(data->player->y - s->y) < 5)
+				s->state = 1;
+		}
+	}
+}
+
+int		ft_try_shoot(t_data *data, double x, double y, double x_dest, double y_dest)
+{
+	t_ray	ray;
+	double	magnitude;
+	double	max_ray_x;
+	double	max_ray_y;
+	double	x_step;
+	double	y_step;
+	int salida;
+
+
+	ray.x = x;
+	ray.y = y;
+	ray.dir_x = x_dest - x;
+	ray.dir_y = y_dest - y;
+	magnitude = sqrt(ray.dir_x * ray.dir_x + ray.dir_y * ray.dir_y);
+	ray.dir_x /= magnitude;
+	ray.dir_y /= magnitude;
+	ray.hit = 0;
+	ray.side = 0;
+	ray.delta_dist_x = fabs(1 / ray.dir_x);
+	ray.delta_dist_y = fabs(1 / ray.dir_y);
+	ft_step_calc_2(&ray, x, y);
+	printf("dir_x: %f, dir_y: %f, magnitude: %f\n", ray.dir_x, ray.dir_y, magnitude);
+	printf("p->dir_x: %f, p->dir_y: %f\n", data->player->dir_x, data->player->dir_y);
+	x_step = data->player->mov_speed * ray.dir_y;
+	y_step = data->player->mov_speed * ray.dir_x;
+	max_ray_x = ray.x + 3 * x_step;
+	ray.x -= 3 * x_step;
+	ray.y -= 3 * y_step;
+	while (ray.x < max_ray_x)
+	{
+		salida = 0;
+		while (!salida)
+		{
+			printf("  ray.x %d ray.y %d\n", ray.x, ray.y);
+			ft_ray_side_dist(&ray);
+
+			if ((int)ray.x >= data->map_height || (int)ray.x < 0 ||
+				(int)ray.y >= data->map_width || (int)ray.y < 0)
+			{
+				salida = 1;
+				printf("   fuera del mapa %d\n", salida);
+				break ;
+			}
+			else if ((int)ray.x == (int)data->player->x && (int)ray.y == (int)data->player->y)
+			{
+				printf("   acierta a player\n");
+				salida = 1;
+				break ;
+			}
+			else if (data->collision_map[ray.x][ray.y])
+			{
+				printf("   choca con algo\n");
+				salida = 1;
+				break ;
+			}
+			ray.x += x_step;
+			ray.y += y_step;
+		}
+	}
+	//getchar();
+
+
+	return (0);
+}
+
 void	ft_move_soldiers(t_data *data)
 {
 	int			i;
@@ -189,28 +288,38 @@ void	ft_move_soldiers(t_data *data)
 	//test_order = data->player->move_them;
 	//if (!data->player->move_them)
 	//	return ;
+	//printf("move soldiers\n");
 	while (i < data->sprites_num)
 	{
 		s = &data->sprite_buffer[i];
 		if (s->type == 1)
 		{
-		//	printf("sprite s %d, pos %f %f\n", i, s->x, s->y);
+		//	printf("ebtra a if\n");
+			ft_activate_sprite(data, s);
 			f_x = s->x - (int)s->x;
 			f_y = s->y - (int)s->y;
-		//	printf("f_x %f f_y %f\n", f_x, f_y);
-			if (f_x >= 0.4 && f_y >= 0.4 && f_x <= 0.6 && f_y <= 0.6)
+	//		printf("statte: %d\n", s->state);
+			if (ft_try_shoot(data, s->x, s->y, data->player->x, data->player->y))
 			{
-				mod = !(data->collision_map[(int)s->x][(int)s->y]) ? -1 : 1;
-				s->dir_x = mod * data->arrow_map[(int)round(s->x)][(int)round(s->y)].dir_x;//	if (
-				s->dir_y = mod * data->arrow_map[(int)round(s->x)][(int)round(s->y)].dir_y;//	if (
+				s->shoot++;
 			}
-			//exit(0);
+			else 
+			{
+				s->shoot = 0;
+				if (s->state == 1)
+				//if (f_x >= 0.45 && f_y >= 0.45 && f_x <= 0.55 && f_y <= 0.55)
+				{
+					//printf("enyra aqui tmbien\n");
+					//mod = !(data->collision_map[(int)s->x][(int)s->y]) ? -1 : 1;
+					s->dir_x = data->arrow_map[(int)round(s->x)][(int)round(s->y)].dir_x;//	if (
+					s->dir_y = data->arrow_map[(int)round(s->x)][(int)round(s->y)].dir_y;//	if (
+					ft_sprite_advance(data, 0, data->player->mov_speed / 4, s);
+					//printf("dirx: %f diry: %f\n", s->dir_x, s->dir_y);
+				//	s->x += data->player->mov_speed * 1 / 4 * s->dir_x;
+				//	s->y += data->player->mov_speed * 1 / 4 * s->dir_y;
+				}
+			}
 		}
-		ft_sprite_advance(data, 0, data->player->mov_speed / 10, s);
-	//	printf("dir_x %f, dir_y %f p_dir_x %f, p_dir_y %f\n", s->dir_x, s->dir_y, data->player->dir_x, data->player->dir_y);
-		//exit(0);
-		s->x += data->player->mov_speed * 1 / 4 * s->dir_x;
-		s->y += data->player->mov_speed * 1 / 4 * s->dir_y;
 		i++;
 	}
 }
@@ -710,16 +819,16 @@ int		ft_key_hook(int keycode, void *params)
 			data->player->move_them = 1;
 		printf("value: %d\n", data->player->move_them);*/
 		int y = -1;
-		printf("\n");
+		//printf("\n");
 		while (++y < data->map_height)
 		{
 			int x = -1;
 			while (++x < data->map_width)
 			{
 				//printf("print arrow (%d, %d)\n", x, y);
-				ft_print_arrow(data, x, y);
+		//		ft_print_arrow(data, x, y);
 			}
-			printf("\n");
+		//	printf("\n");
 		}
 	//	exit(0);
 //	}

@@ -95,6 +95,8 @@ typedef struct		s_sprite
 	double			dir_y;
 	int				value;
 	int				type;
+	int				state; //0 quieto o random, 1 persigue, 2 disparando, 3 muerto
+	int				shoot;
 	int				moved;
 	int				comprobador;
 	//t_ext_sprite	*ext;
@@ -219,6 +221,8 @@ int					ft_render(t_data *data, t_mlx *mlx, t_player *player, int **map);
 int					ft_color_switch(t_ray *ray);
 
 double				ft_ray_dist(t_ray *ray, t_player *player);
+void				ft_ray_side_dist(t_ray *ray);
+void				ft_step_calc_2(t_ray *ray, double x, double y);
 
 int					ft_texel_selector(t_texture *texture, t_ray *ray, int col, int row, int draw_end, int draw_start);
 void				ft_paint_col(t_ray *ray, t_data *data);

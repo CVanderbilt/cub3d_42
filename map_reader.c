@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/27 13:15:57 by eherrero          #+#    #+#             */
-/*   Updated: 2020/02/12 18:18:34 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/02/13 19:10:15 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -288,6 +288,7 @@ void			ft_set_sprite_data(char *str, t_sprite *sprite)
 	sprite->back_y = sprite->y;
 	sprite->dir_x = 0;
 	sprite->dir_y = 1;
+	sprite->state = 0;
 	sprite->moved = 1;                    //QUITAR
 }
 

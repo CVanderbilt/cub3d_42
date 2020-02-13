@@ -6,35 +6,65 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/27 14:08:58 by eherrero          #+#    #+#             */
-/*   Updated: 2020/02/05 18:39:27 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/02/13 21:53:00 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "cub3d.h"
 
-void		ft_step_calc(t_ray *ray, t_player *player)
+void		ft_step_calc_2(t_ray *ray, double x, double y)
 {
 	if (ray->dir_x < 0)
 	{
 		ray->step_x = -1;
-		ray->side_dist_x = (player->x - ray->x) * ray->delta_dist_x;
+		ray->side_dist_x = (x - ray->x) * ray->delta_dist_x;
 	}
 	else
 	{
 		ray->step_x = 1;
-		ray->side_dist_x = (ray->x + 1.0 - player->x) * ray->delta_dist_x;
+		ray->side_dist_x = (ray->x + 1.0 - x) * ray->delta_dist_x;
 	}
 	if (ray->dir_y < 0)
 	{
 		ray->step_y = -1;
-		ray->side_dist_y = (player->y - ray->y) * ray->delta_dist_y;
+		ray->side_dist_y = (y - ray->y) * ray->delta_dist_y;
 	}
 	else
 	{
 		ray->step_y = 1;
-		ray->side_dist_y = (ray->y + 1.0 - player->y) * ray->delta_dist_y;
+		ray->side_dist_y = (ray->y + 1.0 - y) * ray->delta_dist_y;
 	}
 }
+
+void		ft_step_calc(t_ray *ray, t_player *player)
+{
+	ft_step_calc_2(ray, player->x, player->y);
+}
+
+/*void		ft_step_calc(t_ray *ray, t_pllayer *p)
+{
+	if (ray->dir_x < 0)
+	{
+		ray->step_x = -1;
+		ray->side_dist_x = (p->x - ray->x) * ray->delta_dist_x;
+	}
+	else
+	{
+		ray->step_x = 1;
+		ray->side_dist_x = (ray->x + 1.0 - p->x) * ray->delta_dist_x;
+	}
+	if (ray->dir_y < 0)
+	{
+		ray->step_y = -1;
+		ray->side_dist_y = (y - ray->y) * ray->delta_dist_y;
+	}
+	else
+	{
+		ray->step_y = 1;
+		ray->side_dist_y = (ray->y + 1.0 - y) * ray->delta_dist_y;
+	}
+}*/
+
 
 void		ft_init_ray(t_ray *ray, t_player *player, double camera_x)
 {
@@ -291,7 +321,7 @@ t_texture	*ft_get_sprite_texture(t_data *data, t_sprite *s)
 	//printf("grid_y %d\n", y_grid);
 	x_grid = ft_get_gridx(a);
 	//printf("diff: %f, a_state: %f\n", a, x_grid);
-	t = s->moved ? ft_select_moving_tex(data) : &data->soldier_anim[0];
+	t = s->state == 1 ? ft_select_moving_tex(data) : &data->soldier_anim[0];
 	
 	//printf("width %f height %f realw %d realh %d\n", t->width, t->height, t->real_width, t->real_height);
 	//getchar();
@@ -430,120 +460,7 @@ void		ft_paint_one_sprite(t_data *data, t_sprite *sprite)
 			}
 		stripe++;
 	}
-	//printf("  acaba una\n");
-
 }
-
-
-
-
-/*
-
-void		ft_paint_one_sprite(t_data *data, t_sprite *sprite)
-{
-	t_player	*p;
-	double		inv_det;
-	double		sprite_x;
-	double		sprite_y;
-	double		transform_x;
-	double		transform_y;
-	int			sprite_screen_x;
-
-	int			sprite_h;
-	int			sprite_w;
-
-	int			draw_start_y;
-	int			draw_end_y;
-
-	int			draw_start_x;
-	int			draw_end_x;
-	
-	int			stripe;
-
-	int			tex_x;
-	int			tex_y;
-
-	t_texture	*t;
-	int			*img;
-	int			*screen;
-	int			y;
-
-	printf("  pinta una\n");
-	screen =(int*)data->mlx->screen_data;
-
-	t = sprite->texture;
-	img = t->addr;
-
-	p = data->player;
-	sprite_x = sprite->x - p->x;
-	sprite_y = sprite->y - p->y;
-	inv_det = 1.0 / (p->plane_x * p->dir_y - p->plane_y * p->dir_x);
-	
-	transform_x = inv_det * (p->dir_y * sprite_x - p->dir_x * sprite_y);
-	transform_y = inv_det * (-p->plane_y * sprite_x + p->plane_x * sprite_y);
-
-	printf("transform_x %f\n", transform_x);
-	printf("transform_y %f\n", transform_y);
-
-	sprite_screen_x = (int)((data->res_x / 2) * (1 + transform_x / transform_y));
-	
-	sprite_h = abs((int)(data->res_y / transform_y));
-
-	draw_start_y = -sprite_h / 2 + data->res_y / 2;
-	if (draw_start_y < 0)
-		draw_start_y = 0;
-	draw_end_y = sprite_h / 2 + data->res_y / 2;
-	if (draw_end_y >= data->res_y)
-		draw_end_y = data->res_y - 1;
-	
-	sprite_w = abs((int)(data->res_y / transform_y));
-
-	draw_start_x = -sprite_w / 2 + sprite_screen_x;
-	if (draw_start_x < 0)
-		draw_start_x = 0;
-	draw_end_x = sprite_w / 2 + sprite_screen_x;
-	if (draw_end_x >= data->res_x)
-		draw_end_x = data->res_x - 1;
-	stripe = draw_start_x;
-	printf("va a entrar a bucle\n");
-	printf("pinta desde x(%d a %d) y desde y(%d a %d)\n", draw_start_x, draw_end_x ,draw_start_y, draw_end_y);
-	while (stripe < draw_end_x)
-	{
-		printf("stripe: %d\n", stripe);
-		tex_x = (int)(256 * (stripe - (-sprite_w / 2 + sprite_screen_x)) * t->width / sprite_w) / 256;
-		y = 0;
-		printf("tex_x %d\n", tex_x);
-		if (transform_y > 0 && stripe > 0 && stripe < data->res_x && transform_y < data->buffer_z[stripe])
-			while (y < draw_end_y)
-			{
-				int d = (y) * 256 - data->res_y * 128 + sprite_h * 128;
-				int	tex_y = ((d * t->height) / sprite_h) / 256;
-				//printf("t_height %d\n", t->height);
-	printf("sprite_h %d\n", sprite_h);
-		printf("  tex_y %d\n", tex_y);
-
-				//printf("selecciona color pos %d\n", t->width * tex_y + tex_x);
-				//printf(" sprite_h %d\n", sprite_h);
-				//printf(" d %d\n", d);
-				//printf(" t->width %d\n", t->width);
-				//printf(" tex_y %d\n", tex_y);
-				//printf(" tex_x %d\n", tex_x);
-				int color = img[t->width * tex_y + tex_x];
-				if (color != 9961608)
-					screen[y * data->res_y + data->res_x - stripe] = color;
-				y++;
-			}
-		stripe++;
-	}
-	printf("  acaba una\n");
-
-}
-
-
-
-*/
-
-
 
 void		ft_sort_sprites(int *orden, double *dist, int num)
 {
@@ -617,7 +534,7 @@ int			ft_render(t_data *data, t_mlx *mlx, t_player *player, int **map)
 		camera_x = 2 * ray_col / (double)(mlx->x) - 1;
 		ft_init_ray(&ray, player, camera_x);
 		ft_step_calc(&ray, player);
-		while (ray.hit == 0)
+		while (!ray.hit)
 		{
 			ft_ray_side_dist(&ray);
 			if (map[ray.x][ray.y] > 0)
