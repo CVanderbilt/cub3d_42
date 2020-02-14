@@ -152,8 +152,12 @@ typedef struct		s_data
 	int				animation_cycle;
 
 	t_texture		soldier_anim[5];
+	t_texture		*soldier_shoot;
 
 	t_texture		*hud;
+	t_texture		weapon[5];
+	int				shooting;
+	int				weapon_state;
 	t_texture		numbers[10];
 
 	t_texture		*healthbar;

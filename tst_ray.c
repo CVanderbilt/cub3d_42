@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/27 14:08:58 by eherrero          #+#    #+#             */
-/*   Updated: 2020/02/13 21:53:00 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/02/14 15:11:59 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -321,6 +321,19 @@ t_texture	*ft_get_sprite_texture(t_data *data, t_sprite *s)
 	//printf("grid_y %d\n", y_grid);
 	x_grid = ft_get_gridx(a);
 	//printf("diff: %f, a_state: %f\n", a, x_grid);
+	if (s->shoot)
+	{
+		t = data->soldier_shoot;
+		//printf("t %p\n", t);
+		if (s->shoot < 25)
+			t->offset = 0;
+		else if (s->shoot < 60)
+			t->offset = t->width;
+		else
+			t->offset = t->width * 2;
+		return (t);
+	}
+	else
 	t = s->state == 1 ? ft_select_moving_tex(data) : &data->soldier_anim[0];
 	
 	//printf("width %f height %f realw %d realh %d\n", t->width, t->height, t->real_width, t->real_height);

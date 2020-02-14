@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/27 14:53:37 by eherrero          #+#    #+#             */
-/*   Updated: 2020/02/13 21:52:58 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/02/14 17:25:29 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -208,7 +208,7 @@ void	ft_activate_sprite(t_data *data, t_sprite *s)
 	}
 }
 
-int		ft_try_shoot(t_data *data, double x, double y, double x_dest, double y_dest)
+int		ft_try_shoot(t_data *data, double x_dir, double y_dir, double x, double y, double x_dest, double y_dest)
 {
 	t_ray	ray;
 	double	magnitude;
@@ -216,8 +216,12 @@ int		ft_try_shoot(t_data *data, double x, double y, double x_dest, double y_dest
 	double	max_ray_y;
 	double	x_step;
 	double	y_step;
-	int salida;
-
+	double	init_x;
+	double	init_y;
+	int count;
+	int	shooting;
+	int	extra_break;
+	double	dist;
 
 	ray.x = x;
 	ray.y = y;
@@ -231,49 +235,79 @@ int		ft_try_shoot(t_data *data, double x, double y, double x_dest, double y_dest
 	ray.delta_dist_x = fabs(1 / ray.dir_x);
 	ray.delta_dist_y = fabs(1 / ray.dir_y);
 	ft_step_calc_2(&ray, x, y);
-	printf("dir_x: %f, dir_y: %f, magnitude: %f\n", ray.dir_x, ray.dir_y, magnitude);
-	printf("p->dir_x: %f, p->dir_y: %f\n", data->player->dir_x, data->player->dir_y);
+	//printf("dir_x: %f, dir_y: %f, magnitude: %f\n", ray.dir_x, ray.dir_y, magnitude);
+	//printf("p->dir_x: %f, p->dir_y: %f\n", data->player->dir_x, data->player->dir_y);
 	x_step = data->player->mov_speed * ray.dir_y;
 	y_step = data->player->mov_speed * ray.dir_x;
 	max_ray_x = ray.x + 3 * x_step;
-	ray.x -= 3 * x_step;
-	ray.y -= 3 * y_step;
-	while (ray.x < max_ray_x)
+	init_x = ray.x - 3 * x_step;
+	init_y = ray.y - 3 * y_step;
+	init_x = ray.x;
+	init_y = ray.y;
+	count = 0;
+	//printf("diff %f\n",fabs(atan2(x_dir, y_dir) - atan2(ray.dir_x, ray.dir_y)) );
+	if (fabs(atan2(x_dir, y_dir) - atan2(ray.dir_x, ray.dir_y)) > 0.8)
 	{
-		salida = 0;
-		while (!salida)
+		//printf("no esta a la vista\n");
+		return (0);
+	}
+	if (magnitude > 8)
+	{
+		printf("out of range\n");
+		return (0);
+	}
+	while (count < 6)
+	{
+		ray.x = init_x;
+		ray.y = init_y;
+		extra_break = 0;
+		while (!extra_break)
 		{
-			printf("  ray.x %d ray.y %d\n", ray.x, ray.y);
+		//	printf("  ray.x %d ray.y %d\n", ray.x, ray.y);
 			ft_ray_side_dist(&ray);
 
+		//	printf("empiezan ifs\n");
 			if ((int)ray.x >= data->map_height || (int)ray.x < 0 ||
 				(int)ray.y >= data->map_width || (int)ray.y < 0)
 			{
-				salida = 1;
-				printf("   fuera del mapa %d\n", salida);
-				break ;
+		//		printf("   fuera del mapa\n");
+				return (0); ;
 			}
 			else if ((int)ray.x == (int)data->player->x && (int)ray.y == (int)data->player->y)
 			{
-				printf("   acierta a player\n");
-				salida = 1;
-				break ;
+		//		printf("   acierta a player\n");
+				return (1);
 			}
 			else if (data->collision_map[ray.x][ray.y])
 			{
-				printf("   choca con algo\n");
-				salida = 1;
+		//		printf("   choca con algo\n");
+				extra_break = 1;
 				break ;
 			}
-			ray.x += x_step;
-			ray.y += y_step;
+		//	printf("acaban ifs\n");
+			init_x += x_step;
+			init_y += y_step;
 		}
+		//printf("ha salido del bucle\n");
+		count++;
 	}
 	//getchar();
 
 
 	return (0);
 }
+/*
+void	ft_diagonalize(t_data *data, t_sprite *s)
+{
+	int		next_x;
+	int		next_y;
+	double	next_dir_x;
+	double	next_dir_y;
+
+	next_x = (int)s->x + s->dir_x;
+	next_y = (int)s->y + s-<dir_y;
+	next_dir_x = data->arrow_map[next_x][]
+}*/
 
 void	ft_move_soldiers(t_data *data)
 {
@@ -291,32 +325,55 @@ void	ft_move_soldiers(t_data *data)
 	//printf("move soldiers\n");
 	while (i < data->sprites_num)
 	{
+	//	printf("i: %d\n", i);
 		s = &data->sprite_buffer[i];
 		if (s->type == 1)
 		{
-		//	printf("ebtra a if\n");
-			ft_activate_sprite(data, s);
+			//printf("ebtra a if\n");
+		//	ft_activate_sprite(data, s);
 			f_x = s->x - (int)s->x;
 			f_y = s->y - (int)s->y;
 	//		printf("statte: %d\n", s->state);
-			if (ft_try_shoot(data, s->x, s->y, data->player->x, data->player->y))
+//	printf("intenta disparo\n");
+			if (ft_try_shoot(data, s->dir_x, s->dir_y, s->x, s->y, data->player->x, data->player->y))
 			{
-				s->shoot++;
+			//	printf("acierta\n");
+				if (s->state == 1)
+				{
+					s->shoot++;
+					if (s->shoot == 75)
+					{
+						s->shoot = 25;
+						data->player->health--;
+					}
+					//printf("shoot %d\n", s->shoot);
+				}
+				else
+					s->state = 1;
 			}
 			else 
 			{
+			//	printf("falla\n");
 				s->shoot = 0;
 				if (s->state == 1)
-				//if (f_x >= 0.45 && f_y >= 0.45 && f_x <= 0.55 && f_y <= 0.55)
 				{
-					//printf("enyra aqui tmbien\n");
-					//mod = !(data->collision_map[(int)s->x][(int)s->y]) ? -1 : 1;
-					s->dir_x = data->arrow_map[(int)round(s->x)][(int)round(s->y)].dir_x;//	if (
-					s->dir_y = data->arrow_map[(int)round(s->x)][(int)round(s->y)].dir_y;//	if (
+					if (f_x >= 0.2 && f_y >= 0.2 && f_x <= 0.8 && f_y <= 0.8)
+					{
+	//					printf("enyra aqui tmbien\n");
+						//mod = !(data->collision_map[(int)s->x][(int)s->y]) ? -1 : 1;
+						s->dir_x = data->arrow_map[(int)(s->x)][(int)(s->y)].dir_x;//	if (
+						s->dir_y = data->arrow_map[(int)(s->x)][(int)(s->y)].dir_y;//	if (
+						//ft_diagonalize(data, s);
+						//printf("dirx: %f diry: %f\n", s->dir_x, s->dir_y);
+					//	s->x += data->player->mov_speed * 1 / 4 * s->dir_x;
+					//	s->y += data->player->mov_speed * 1 / 4 * s->dir_y;
+					}
 					ft_sprite_advance(data, 0, data->player->mov_speed / 4, s);
-					//printf("dirx: %f diry: %f\n", s->dir_x, s->dir_y);
-				//	s->x += data->player->mov_speed * 1 / 4 * s->dir_x;
-				//	s->y += data->player->mov_speed * 1 / 4 * s->dir_y;
+					/*else
+					{
+						printf("no mueve pos_x %f pos_y %f\n", f_x, f_y);
+					}*/
+
 				}
 			}
 		}
@@ -537,9 +594,9 @@ int		ft_loop_hook(void *params)
 	data = (t_data *)params;
 	t_player	*player = data->player; 
 	mlx = data->mlx;
-//	printf("1\n");
+	//printf("1\n");
 	moved = ft_move(data, data->player);
-//	printf("2\n");
+	//printf("2\n");
 	//mlx_clear_window(mlx->ptr, mlx->window);
 //	if (moved)
 	{
@@ -554,25 +611,25 @@ int		ft_loop_hook(void *params)
 				ft_player_rotate(player, player->rot_speed - 0.001, 0);
 			}
 //	printf("3\n");
-//		printf("start_render\n");
+	//	printf("start_render\n");
 /////		ft_move_soldiers(data);
 		ft_render(data, data->mlx, data->player, data->map);
-//	printf("4\n");
+	//printf("4\n");
 		ft_lifebar(data);
-//	printf("5\n");
+	//printf("5\n");
 		mlx_put_image_to_window(mlx->ptr, mlx->window, mlx->screen, 0, 0);
-//	printf("5.1\n");
+	//printf("5.1\n");
 		data->animation_num++;
-//	printf("5.2\n");
+	//printf("5.2\n");
 		ft_update_extra_maps(data);
-//	printf("6\n");
+	//printf("6\n");
 		ft_move_soldiers(data);            //<-- move soldiers
-//	printf("7\n");
+	//printf("7\n");
 		if (data->animation_num >= data->animation_cycle)
 			data->animation_num = 0;
 //		printf("llega\n");
 		//getchar();
-//		printf("render_completed\n");
+	//	printf("render_completed\n");
 	}
 	frame++;
 	//printf("fin loop_hook\n");
@@ -703,28 +760,42 @@ void	ft_update_hud(t_data *data)
 	int			*img;
 	int			*screen;
 	int			color;
+	double		x_max;
 
-	t = data->hud;
+	if (data->shooting)
+	{
+		data->shooting++;
+		data->weapon_state += !(data->shooting % 10) ? 1 : 0;
+		if (data->weapon_state >= 4)
+		{
+			data->weapon_state = 0;
+			data->shooting = 0;
+		}
+	}
+	t = &data->weapon[data->weapon_state];
 	img = t->addr;
 	//printf("img %p\n", img);
-	screen_y = data->res_y - (int)data->res_y / 7;
+	screen_y = data->res_y - (int)data->res_y / 4;
 	y = 0;
 	//printf("screen_y %d\n", screen_y);
 	//exit(0);
 	screen = (int*)data->mlx->screen_data;
-	x_step = (double)t->width / (double)data->res_x;
-	y_step = (double)t->height / ((double)data->res_y - screen_y);
+	x_max = 2 * (int)data->res_x / 3;
+	x_step = (double)t->width / (data->res_x / 3);
+	y_step = (double)t->height / ((double)data->res_y / 4);
 	//printf("1(while - 1)\n");
 	//printf("y_step %f\n", y_step);
 	//exit(0);
+	
 	while (screen_y < data->res_y)
 	{		
-	//	printf("1(while)\n");
-		screen_x = 0;
+		//printf("1(while)\n");
+		screen_x = data->res_x / 3;
 		x = 0;
-		while (screen_x < data->res_x)
+		while (screen_x < x_max)
 		{
-	//		printf("screen_x: %d, screem_y: %d\n", screen_x, screen_y);
+			//printf("screen_x: %d, screem_y: %d\n", screen_x, screen_y);
+			//exit(0);
 	//		printf("tex_x: %f, tex_y: %f\n", x, y);
 	//		printf("1(while + 1)\n");
 	//		printf("res_x %d, res_y %d\n", data->res_x, data->res_y);
@@ -784,10 +855,12 @@ void	ft_print_arrow(t_data *data, int x_a, int y_a)
 	int y = a_map[y_a][x_a].dir_y;
 
 	//printf("(x %d y %d)", x, y);
-	if (ft_is_soldier(data, y_a, x_a))
-		printf("x");
+	if ((int)data->player->x == y_a && (int)data->player->y == x_a)
+		printf("*");
+	else if (ft_is_soldier(data, y_a, x_a))
+		printf("X");
 	else if (c_map[y_a][x_a])
-		printf("o");
+		printf("O");
 	else if (x)
 	{
 		if (x > 0)
@@ -819,19 +892,22 @@ int		ft_key_hook(int keycode, void *params)
 			data->player->move_them = 1;
 		printf("value: %d\n", data->player->move_them);*/
 		int y = -1;
-		//printf("\n");
+		printf("\n");
 		while (++y < data->map_height)
 		{
 			int x = -1;
 			while (++x < data->map_width)
 			{
-				//printf("print arrow (%d, %d)\n", x, y);
-		//		ft_print_arrow(data, x, y);
+			//	printf("print arrow (%d, %d)\n", x, y);
+				ft_print_arrow(data, x, y);
 			}
-		//	printf("\n");
+			printf("\n");
 		}
 	//	exit(0);
 //	}
+	if (keycode == 126)
+		if (!data->shooting)
+			data->shooting++;
 	if (keycode == 53)
 	{
 		ft_free_map(data);

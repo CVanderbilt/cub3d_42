@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/17 10:43:11 by eherrero          #+#    #+#             */
-/*   Updated: 2020/02/13 18:08:28 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/02/14 17:24:28 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -100,11 +100,21 @@ void	ft_init_texture(t_mlx *mlx, t_texture *t, char *path)
 	printf("tex_end\n\n");
 }
 
+void	ft_init_weapon(t_data *data)
+{
+	ft_init_texture(data->mlx, &data->weapon[0], "weapon/pistol_0.xpm");
+	ft_init_texture(data->mlx, &data->weapon[1], "weapon/pistol_1.xpm");
+	ft_init_texture(data->mlx, &data->weapon[2], "weapon/pistol_2.xpm");
+	ft_init_texture(data->mlx, &data->weapon[3], "weapon/pistol_3.xpm");
+	ft_init_texture(data->mlx, &data->weapon[4], "weapon/pistol_4.xpm");
+}
+
 void	ft_init_textures(t_data *data)
 {
 	t_mlx	*mlx;
 
 	mlx = data->mlx;
+	ft_init_weapon(data);
 	mlx->n_img = (t_texture*)malloc(sizeof(t_texture));
 //	printf("malloc(ft_init_textures) %p\n", mlx->n_img);
 	mlx->s_img = (t_texture*)malloc(sizeof(t_texture));
@@ -115,19 +125,18 @@ void	ft_init_textures(t_data *data)
 //	printf("malloc(ft_init_textures) %p\n", mlx->e_img);
 	mlx->skybox = (t_texture*)malloc(sizeof(t_texture));
 //	printf("malloc(ft_init_textures) %p\n", mlx->skybox);
-	data->hud = (t_texture*)malloc(sizeof(t_texture));
 	//data->healthbar = (t_texture*)malloc(sizeof(t_texture));
 	//mlx->sprite1 = (t_texture*)malloc(sizeof(t_texture));
 	//mlx->floor = (t_texture*)malloc(sizeof(t_texture));
 	if (!mlx->n_img || !mlx->s_img || !mlx->e_img || !mlx->w_img
-			|| !mlx->skybox || !data->hud)
+			|| !mlx->skybox)
 		ft_memory_error();
 	ft_init_texture(mlx, mlx->n_img, "brick.xpm");
 	ft_init_texture(mlx, mlx->s_img, "stone.xpm");
 	ft_init_texture(mlx, mlx->e_img, "metal.xpm");
 	ft_init_texture(mlx, mlx->w_img, "wood.xpm");
 	ft_init_texture(mlx, mlx->skybox, "skybox.xpm");
-	ft_init_texture(mlx, data->hud, "hud_bar.xpm");
+	//ft_init_texture(mlx, data->hud, "hud_bar.xpm");
 	//ft_init_texture(mlx, data->healthbar, "health_bar.xpm");
 	//ft_init_texture(mlx, mlx->sprite1, "sprite.xpm");
 	//ft_init_texture(mlx, mlx->floor, "wood.xpm");
@@ -243,6 +252,8 @@ void	ft_init_data(t_data *data, char *map_name, double rsp, double msp, int cycl
 
 	printf("init_data\n");
 
+	data->weapon_state = 0;
+	data->shooting = 0;
 	data->animation_num = 0;
 	data->animation_cycle = cycles;
 	player = (t_player*)malloc(sizeof(t_player));
@@ -295,6 +306,18 @@ void	ft_loop(t_data *data)
 	mlx_loop(mlx->ptr);
 }
 
+void	ft_init_extra_animations(t_data *data)
+{
+	t_texture *t;
+
+	t = (t_texture *)malloc(sizeof(t_texture));
+	if (!t)
+		ft_memory_error();
+	ft_init_texture(data->mlx, t, "soldier_anim/soldier_shoot.xpm");
+	t->width = 64;
+	data->soldier_shoot = t;
+}
+
 void	ft_init_soldier(t_data *data)
 {
 	t_texture *t;
@@ -303,6 +326,7 @@ void	ft_init_soldier(t_data *data)
 	ft_init_texture(data->mlx, &data->soldier_anim[2], "soldier_anim/soldier_walk2.xpm");
 	ft_init_texture(data->mlx, &data->soldier_anim[3], "soldier_anim/soldier_walk3.xpm");
 	ft_init_texture(data->mlx, &data->soldier_anim[4], "soldier_anim/soldier_walk4.xpm");
+
 	t = &(data->soldier_anim[0]);
 	t->width = 64;
 	//t->real_width = 512;
@@ -318,6 +342,7 @@ void	ft_init_soldier(t_data *data)
 	t = &(data->soldier_anim[4]);
 	t->width = 64;
 	//t->real_width = 512;
+	ft_init_extra_animations(data);
 }
 
 int		main(int argc, char **argv)
