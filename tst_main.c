@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/01/17 10:43:11 by eherrero          #+#    #+#             */
-/*   Updated: 2020/02/14 17:24:28 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/02/24 19:43:57 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ void	ft_init_player(t_player *player, double r_speed, double m_speed)
 	player->rot_speed = r_speed;
 	player->mov_speed = m_speed;
 
-	player->health = 45;
+	player->health = 100;
 	player->ammo = 8;
 	player->move_them = 0;
 
@@ -131,10 +131,10 @@ void	ft_init_textures(t_data *data)
 	if (!mlx->n_img || !mlx->s_img || !mlx->e_img || !mlx->w_img
 			|| !mlx->skybox)
 		ft_memory_error();
-	ft_init_texture(mlx, mlx->n_img, "brick.xpm");
-	ft_init_texture(mlx, mlx->s_img, "stone.xpm");
-	ft_init_texture(mlx, mlx->e_img, "metal.xpm");
-	ft_init_texture(mlx, mlx->w_img, "wood.xpm");
+	ft_init_texture(mlx, mlx->n_img, data->n_texture);
+	ft_init_texture(mlx, mlx->s_img, data->s_texture);
+	ft_init_texture(mlx, mlx->e_img, data->e_texture);
+	ft_init_texture(mlx, mlx->w_img, data->w_texture);
 	ft_init_texture(mlx, mlx->skybox, "skybox.xpm");
 	//ft_init_texture(mlx, data->hud, "hud_bar.xpm");
 	//ft_init_texture(mlx, data->healthbar, "health_bar.xpm");
@@ -200,20 +200,6 @@ void	ft_init_mlx(t_data *data, char *map_name)
 		ft_memory_error();
 	printf("mlx_window\n");
 	//printf("init_mlx 7\n");
-}
-
-void	ft_init_numbers(t_data *data)
-{
-	ft_init_texture(data->mlx, &data->numbers[0], "numbers/zero.xpm");
-	ft_init_texture(data->mlx, &data->numbers[1], "numbers/one.xpm");
-	ft_init_texture(data->mlx, &data->numbers[2], "numbers/two.xpm");
-	ft_init_texture(data->mlx, &data->numbers[3], "numbers/three.xpm");
-	ft_init_texture(data->mlx, &data->numbers[4], "numbers/four.xpm");
-	ft_init_texture(data->mlx, &data->numbers[5], "numbers/five.xpm");
-	ft_init_texture(data->mlx, &data->numbers[6], "numbers/six.xpm");
-	ft_init_texture(data->mlx, &data->numbers[7], "numbers/zero.xpm");
-	ft_init_texture(data->mlx, &data->numbers[8], "numbers/zero.xpm");
-	ft_init_texture(data->mlx, &data->numbers[9], "numbers/nine.xpm");
 }
 
 void	ft_init_extra_maps(t_data *data)
@@ -353,6 +339,8 @@ int		main(int argc, char **argv)
 	//data.sprites_num = 2;
 	ft_init_data(&data, "map.cub", 0.05, 0.15, 48);//0.01, 0.02
 
+	if (argc && 0)
+		free(argv);
 
 	printf("sprites: %d\n", data.sprites_num);
 	//printf("sprite: %p\n", data.sprite_buffer);
