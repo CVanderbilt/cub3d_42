@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/02/28 13:33:49 by eherrero          #+#    #+#             */
-/*   Updated: 2020/03/03 15:00:12 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/03/03 19:35:08 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,6 @@ int		ft_loop_hook(void *params)
 			(player->dir_y == 1 || player->dir_y == -1))
 			ft_player_rotate(player, player->rot_speed - 0.001, 0);
 		ft_render(data, data->mlx, data->player, data->map);
-		ft_lifebar(data);
 		mlx_put_image_to_window(mlx->ptr, mlx->window, mlx->screen, 0, 0);
 		data->animation_num++;
 		ft_update_extra_maps(data);

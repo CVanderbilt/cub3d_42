@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/02/28 13:35:17 by eherrero          #+#    #+#             */
-/*   Updated: 2020/03/03 15:00:16 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/03/03 19:35:10 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,5 +85,6 @@ void	ft_update_hud(t_data *data)
 		ft.screen_y++;
 		if (ft.y >= ft.t->height)
 			ft.y = ft.t->height - 1;
+		ft_lifebar(data);
 	}
 }
