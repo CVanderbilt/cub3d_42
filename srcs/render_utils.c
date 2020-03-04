@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/02/25 14:57:41 by eherrero          #+#    #+#             */
-/*   Updated: 2020/03/03 15:02:14 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/03/04 13:47:47 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,6 +44,24 @@ void		ft_paint_sky_col(t_ray *ray, t_data *d, t_paint_col *ft, int *img)
 		img[ray->col + f.i * d->res_x] = f.sky_img[f.offset + f.j];
 		f.i++;
 	}
+	ft->mul = (ft->tex->height) * ft->tex_x;
+}
+
+int			ft_redder(int color, double dst)
+{
+	int		rgb[3];
+	double	fog_p;
+
+	if (dst > 30)
+		fog_p = 100;
+	else
+		fog_p = dst * 100 / 30;
+	fog_p = 100 - fog_p;
+	fog_p /= 100;
+	rgb[0] = (color / 65536);
+	rgb[1] = (color / 256) % 256 * fog_p;
+	rgb[2] = color % 256 * fog_p;
+	return (rgb[0] * 65536 + rgb[1] * 256 + rgb[2]);
 }
 
 void		ft_paint_col(t_ray *ray, t_data *data)
@@ -63,13 +81,13 @@ void		ft_paint_col(t_ray *ray, t_data *data)
 	ft.step = 1.0 * ft.tex->height / ft.line_height;
 	ft.tex_pos = (ft.draw_s - data->mlx->y / 2 + ft.line_height / 2) * ft.step;
 	ft_paint_sky_col(ray, data, &ft, ft.img);
-	ft.mul = (ft.tex->height) * ft.tex_x;
 	while (ft.draw_s++ < ft.draw_end)
 	{
 		ft.tex_y = (int)ft.tex_pos & ((int)ft.tex->height - 1);
 		ft.tex_pos += ft.step;
 		ft.color = ft.tex->addr[ft.mul + ft.tex_y];
-		ft.img[ray->col + (ft.draw_s - 1) * data->res_x] = ft.color;
+		ft.img[ray->col + (ft.draw_s - 1) * data->res_x] = ft_redder(ft.color,
+				ray->perp_wall_dist);
 	}
 	while (ft.draw_end++ < data->mlx->y)
 		ft.img[ray->col + (ft.draw_end - 2) * data->res_x] = data->floor_color;

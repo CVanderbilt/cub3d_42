@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/02/25 15:00:20 by eherrero          #+#    #+#             */
-/*   Updated: 2020/03/03 15:02:21 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/03/04 13:27:17 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -88,7 +88,8 @@ void		ft_paint_one_sprite(t_data *data, t_sprite *sprite)
 				f.t_y = f.t_y < 0 ? 0 : f.t_y;
 				f.col = f.img[f.t->offset + f.t->real_width * f.t_y + f.t_x];
 				if (f.col != 9961608)
-					f.screen[f.y * data->res_x + data->res_x - f.c] = f.col;
+					f.screen[f.y * data->res_x + data->res_x - f.c] = ft_redder(
+							f.col, f.tf_y);
 			}
 	}
 }

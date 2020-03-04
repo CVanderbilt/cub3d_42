@@ -6,11 +6,64 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/02/28 13:35:17 by eherrero          #+#    #+#             */
-/*   Updated: 2020/03/03 19:35:10 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/03/04 17:32:09 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "cub3d.h"
+
+void	ft_putmap_aux(t_data *data, t_putmap *f, int c)
+{
+	if (c == 1)
+	{
+		f->map_height = data->res_x / 5;
+		f->map_width = data->res_y / 5;
+		f->x = data->res_x - f->map_height;
+		f->y = data->res_y - f->map_width;
+		f->divider_w = f->map_width / 21;
+		f->divider_h = f->map_height / 21;
+		return ;
+	}
+	if (f->relative_y >= data->map_width || f->relative_y < 0
+			|| f->relative_x >= data->map_height || f->relative_x < 0)
+		f->color = 6579300;
+	else if (f->relative_y != f->p_y || f->relative_x != f->p_x)
+	{
+		if ((f->aux = data->collision_map[f->relative_x][f->relative_y]))
+		{
+			if (f->aux == 3)
+				f->color = 6579300;
+			else
+				f->color = f->aux == 1 ? 0 : 16711935;
+		}
+	}
+	else
+		f->color = 16711680;
+}
+
+void	ft_putmap(t_data *data)
+{
+	t_putmap f;
+
+	f.p_x = (int)data->player->x;
+	f.p_y = (int)data->player->y;
+	f.img = (int*)data->mlx->screen_data;
+	ft_putmap_aux(data, &f, 1);
+	f.i = f.y - 1;
+	while (++f.i < data->res_y)
+	{
+		f.j = f.x - 1;
+		f.relative_x = f.p_x + (f.i - f.x) / f.divider_w - 10;
+		f.mul = f.i * data->res_y;
+		while (++f.j < data->res_x)
+		{
+			f.color = 25;
+			f.relative_y = f.p_y + (f.j - f.y) / f.divider_h - 10;
+			ft_putmap_aux(data, &f, 0);
+			f.img[f.mul + f.j] = f.color == 25 ? f.img[f.mul + f.j] : f.color;
+		}
+	}
+}
 
 void	ft_lifebar(t_data *data)
 {
@@ -86,5 +139,6 @@ void	ft_update_hud(t_data *data)
 		if (ft.y >= ft.t->height)
 			ft.y = ft.t->height - 1;
 		ft_lifebar(data);
+		ft_putmap(data);
 	}
 }

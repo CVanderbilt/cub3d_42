@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/03/03 17:03:00 by eherrero          #+#    #+#             */
-/*   Updated: 2020/03/03 17:44:50 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/03/04 18:07:32 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,8 @@ int			ft_atoi(const char *str);
 void		ft_atoi_rgb(char *str, int rgb[3]);
 void		ft_putstr(char *str);
 int			ft_in_set(char c, char *set);
+char		*ft_strjoin(char const *s1, char const *s2);
+char		*ft_itoa(int n);
 /*
 **					map_reader
 */
@@ -65,6 +67,11 @@ int			ft_first_line_check(int *line, int **tab, char *str, t_data *d);
 int			ft_check_map_line(int *line, int **tab, char *str, t_data *data);
 int			ft_check_line(int *line, int **tab, char *str, t_data *data);
 int			ft_get_map(char *map, t_data *data);
+int			ft_set_map_sprite(int x, int y, t_data *data);
+int			ft_check_info_line(char *str, t_data *data);
+void		ft_validate_coordinate(t_coordinate c, int s, int **t, int c1);
+void		ft_check_space_valid(int **tab, int x, int y, int size);
+void		ft_fill_line(t_check_map_line *ft, t_data *data, int *l);
 /*
 **					render
 */
@@ -75,6 +82,7 @@ void		ft_ray_side_dist(t_ray *ray);
 void		ft_render(t_data *data, t_mlx *mlx, t_player *player, int **map);
 void		ft_init_ray(t_ray *ray, t_player *player, double camera_x);
 void		ft_paint_sky_col(t_ray *ray, t_data *d, t_paint_col *ft, int *img);
+int			ft_redder(int color, double dst);
 void		ft_paint_col(t_ray *ray, t_data *data);
 t_texture	*ft_switch_texture(t_data *data, t_ray *ray);
 int			ft_tex_xcalc(t_ray *ray, t_texture *tex, double wall_x);
@@ -90,6 +98,8 @@ void		ft_paint_sprites(t_data *data);
 **					events
 */
 int			ft_key_release_hook(int keycode, void *params);
+void		ft_new_level(t_data *data, char *str);
+void		ft_dead(t_data *data);
 int			ft_loop_hook(void *params);
 int			ft_key_hook(int keycode, void *params);
 void		ft_lifebar(t_data *data);
@@ -97,6 +107,7 @@ void		ft_update_hud_aux(t_data *data, t_update_hud *ft);
 void		ft_update_hud(t_data *data);
 void		ft_free_sprites(t_data *data);
 void		ft_free_mlx(t_mlx *mlx);
+void		ft_free_all(t_data *data);
 int			ft_free_and_exit(void *data);
 void		ft_free_map(t_data *data);
 void		ft_free_texture(t_data *data, t_texture *t);

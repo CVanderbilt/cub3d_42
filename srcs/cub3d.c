@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/03/03 16:02:32 by eherrero          #+#    #+#             */
-/*   Updated: 2020/03/03 16:02:47 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/03/04 18:51:45 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,10 @@ int		main(int argc, char **argv)
 	t_data		data;
 	t_player	*p;
 
+	data.n = 0;
+	data.s = 0;
+	data.e = 0;
+	data.w = 0;
 	data.screenshot = 0;
 	if (argc < 2 || argc > 3)
 		ft_arg_error();

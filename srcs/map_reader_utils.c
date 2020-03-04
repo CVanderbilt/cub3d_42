@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/02/25 11:53:29 by eherrero          #+#    #+#             */
-/*   Updated: 2020/03/03 17:48:21 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/03/04 18:40:23 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,8 +17,8 @@ void			ft_set_pos(t_player *player, char c, int x, int y)
 	float	rect;
 
 	rect = 1.57;
-	if (player->x != 0 || player->y != 0)
-		ft_map_error();
+	if (player->x < 0 || player->y < 0)
+		return ;
 	player->y = (double)x + 0.5;
 	player->x = (double)y + 0.5;
 	if (c == 'N' || c == 'S')
@@ -45,7 +45,7 @@ int				ft_check_full(char *str, char c)
 
 	i = -1;
 	while (str[++i])
-		if (str[i] != c)
+		if (str[i] != c || str[i] == ' ')
 			return (0);
 	return (1);
 }

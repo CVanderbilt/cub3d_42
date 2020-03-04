@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/02/25 11:48:42 by eherrero          #+#    #+#             */
-/*   Updated: 2020/03/03 15:01:06 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/03/04 17:13:23 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ int				ft_check_r(char *str, t_data *data)
 	if (!ft_isdigit(str[i]))
 		ft_cub_error();
 	data->res_y = ft_atoi(str + i);
-	if (!(data->res_x) || !(data->res_y))
+	if (data->res_x <= 0 || (data->res_y <= 0))
 		ft_cub_error();
 	return (0);
 }

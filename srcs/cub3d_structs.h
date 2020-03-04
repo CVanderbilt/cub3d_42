@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/03/03 16:52:54 by eherrero          #+#    #+#             */
-/*   Updated: 2020/03/03 17:08:34 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/03/04 18:53:21 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -141,9 +141,13 @@ typedef struct		s_data
 	int				res_x;
 	int				res_y;
 	char			*n_texture;
+	int				n;
 	char			*s_texture;
+	int				s;
 	char			*w_texture;
+	int				w;
 	char			*e_texture;
+	int				e;
 	int				floor_color;
 	int				ceil_color;
 	double			*buffer_z;
@@ -290,4 +294,23 @@ typedef struct		s_init_texture
 	int				w;
 	int				h;
 }					t_init_texture;
+typedef struct		s_putmap
+{
+	int				*img;
+	int				aux;
+	int				map_width;
+	int				map_height;
+	int				x;
+	int				y;
+	int				i;
+	int				j;
+	int				relative_x;
+	int				relative_y;
+	int				color;
+	int				mul;
+	int				p_x;
+	int				p_y;
+	int				divider_w;
+	int				divider_h;
+}					t_putmap;
 #endif
