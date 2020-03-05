@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/03/03 17:03:00 by eherrero          #+#    #+#             */
-/*   Updated: 2020/03/04 18:07:32 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/03/05 14:44:59 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,8 @@ void		ft_putstr(char *str);
 int			ft_in_set(char c, char *set);
 char		*ft_strjoin(char const *s1, char const *s2);
 char		*ft_itoa(int n);
+int			ft_check_extension(char *str, char *ext);
+int			ft_open_check(char *map, int flags);
 /*
 **					map_reader
 */

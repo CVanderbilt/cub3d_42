@@ -5,20 +5,18 @@ F  			 155,155,0
 
 
 SO assets/textures/stone.xpm
-R  600  600
-R  600  600
 NO assets/textures/brick.xpm
-R  600  600
-WE assets/textures/stone.xpm
+R  10000 10000
+WE assets/textures/metal.xpm
 
-EA assets/textures/stone.xpm
+EA assets/textures/wood.xpm
 C 123,23,0
 
 T assets/sprites/sprite.xpm
 T assets/sprites/column.xpm
 T assets/sprites/ammo.xpm
 
-111111111111111111111111111111111111111111                                                
+111111111111111111111111111111111111111111                                               
   1000001E00000000000000000000000000000001
 111110111111111111011111111111111000000001
 10000000000000000000000000000000100000000111111111

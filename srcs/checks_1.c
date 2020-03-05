@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/02/25 11:47:41 by eherrero          #+#    #+#             */
-/*   Updated: 2020/03/04 18:52:30 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/03/05 14:08:07 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ int				ft_check_e(char *str, t_data *data)
 		ft_cub_error();
 	else
 		data->e = 1;
-	return (ft_set_dir_texture(str, 2, &(data->e_texture)));
+	return (ft_set_dir_texture(str, 2, &(data->w_texture)));
 }
 
 int				ft_check_w(char *str, t_data *data)
@@ -42,7 +42,7 @@ int				ft_check_w(char *str, t_data *data)
 		ft_cub_error();
 	else
 		data->w = 1;
-	return (ft_set_dir_texture(str, 2, &(data->w_texture)));
+	return (ft_set_dir_texture(str, 2, &(data->e_texture)));
 }
 
 int				ft_check_s(char *str, t_data *data)

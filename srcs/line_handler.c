@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/02/25 11:46:58 by eherrero          #+#    #+#             */
-/*   Updated: 2020/03/04 18:50:58 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/03/05 14:57:38 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,7 +107,7 @@ int				ft_get_map(char *map, t_data *data)
 		return (ft_memory_error());
 	l = 0;
 	ft.finished = 0;
-	ft.fd = open(map, O_RDONLY);
+	ft.fd = ft_open_check(map, O_RDONLY);
 	while (get_next_line(ft.fd, &(ft.str)))
 	{
 		if ((ft.finished = ft_check_line(&l, t, ft.str, data)) < 0)

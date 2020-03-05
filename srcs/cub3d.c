@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/03/03 16:02:32 by eherrero          #+#    #+#             */
-/*   Updated: 2020/03/04 18:51:45 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/03/05 14:36:54 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,8 @@ int		main(int argc, char **argv)
 		ft_arg_error();
 	else if (argc == 3)
 		data.screenshot = !ft_strcmp(argv[2], "--save") ? 1 : ft_arg_error();
+	if (!ft_check_extension(argv[1], ".cub"))
+		ft_other_error("wrong .cub", argv[1]);
 	ft_init_data(&data, argv[1], 0.05, 0.15);
 	p = data.player;
 	ft_init_soldier(&data);

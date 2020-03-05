@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/03/03 16:52:54 by eherrero          #+#    #+#             */
-/*   Updated: 2020/03/04 18:53:21 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/03/05 13:58:45 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -304,13 +304,13 @@ typedef struct		s_putmap
 	int				y;
 	int				i;
 	int				j;
-	int				relative_x;
-	int				relative_y;
+	int				rel_x;
+	int				rel_y;
 	int				color;
 	int				mul;
 	int				p_x;
 	int				p_y;
-	int				divider_w;
-	int				divider_h;
+	float			divider_w;
+	float			divider_h;
 }					t_putmap;
 #endif
