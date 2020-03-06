@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/02/28 13:35:17 by eherrero          #+#    #+#             */
-/*   Updated: 2020/03/05 14:00:44 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/03/06 17:29:26 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,8 +24,8 @@ void	ft_putmap_aux(t_data *data, t_putmap *f, int c)
 		f->divider_h = (float)f->map_height / 21.0;
 		return ;
 	}
-	if (f->rel_y >= data->map_height || f->rel_y < 0
-			|| f->rel_x >= data->map_width || f->rel_x < 0)
+	if (f->rel_y >= data->map_width || f->rel_y < 0
+			|| f->rel_x >= data->map_height || f->rel_x < 0)
 		f->color = 6579300;
 	else if (f->rel_y != f->p_y || f->rel_x != f->p_x)
 	{

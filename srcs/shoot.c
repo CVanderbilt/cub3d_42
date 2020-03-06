@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/02/28 13:43:27 by eherrero          #+#    #+#             */
-/*   Updated: 2020/03/03 15:00:29 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/03/06 18:55:51 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,6 +57,8 @@ void	ft_shoot_succes(t_data *d, t_sprite *s)
 	if (s->state == 1)
 	{
 		s->shoot++;
+		if (s->shoot == 60)
+			system("afplay ./assets/weapon/Pistol.wav &");
 		if (s->shoot == 75)
 		{
 			s->shoot = 25;
@@ -64,7 +66,10 @@ void	ft_shoot_succes(t_data *d, t_sprite *s)
 		}
 	}
 	else
+	{
+		system("afplay ./assets/soldier_anim/achtung.wav &");
 		s->state = 1;
+	}
 }
 
 void	ft_shoot_fail(t_data *d, t_sprite *s, double f_x, double f_y)
