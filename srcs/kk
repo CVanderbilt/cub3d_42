@@ -1,0 +1,2988 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   arrow_map_tiles.c                                  :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/02/28 13:39:43 by eherrero          #+#    #+#             */
+/*   Updated: 2020/03/03 14:59:47 by eherrero         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "cub3d.h"
+
+int		ft_try(t_try_params *p)
+{
+	t_arrow *s;
+
+	if (p->x < 0 || p->y < 0 ||
+			p->x >= p->data->map_height || p->y >= p->data->map_width)
+		return (0);
+	s = &p->data->arrow_map[p->x][p->y];
+	if (!s->used)
+	{
+		s->used = 1;
+		p->data->arrow_map[p->x][p->y].dir_x = p->dir_x;
+		s->dir_y = p->dir_y;
+		if (p->data->collision_map[p->x][p->y])
+			return (0);
+		return (1);
+	}
+	return (0);
+}
+
+void	ft_set_etile(t_try_params *p, int *arrows, t_coordinate *c)
+{
+	p->dir_x = 1;
+	p->dir_y = 0;
+	p->x -= 1;
+	if (ft_try(p))
+	{
+		{
+			(&c[*arrows])->x = p->x;
+			(&c[*arrows])->y = p->y;
+			*arrows += 1;
+		}
+	}
+}
+
+void	ft_set_stile(t_try_params *p, int *arrows, t_coordinate *c)
+{
+	p->dir_x = 0;
+	p->dir_y = 1;
+	p->y -= 1;
+	if (ft_try(p))
+	{
+		{
+			(&c[*arrows])->x = p->x;
+			(&c[*arrows])->y = p->y;
+			*arrows += 1;
+		}
+	}
+}
+
+void	ft_set_wtile(t_try_params *p, int *arrows, t_coordinate *c)
+{
+	p->dir_x = -1;
+	p->dir_y = 0;
+	p->x += 1;
+	if (ft_try(p))
+	{
+		{
+			(&c[*arrows])->x = p->x;
+			(&c[*arrows])->y = p->y;
+			*arrows += 1;
+		}
+	}
+}
+
+void	ft_set_ntile(t_try_params *p, int *arrows, t_coordinate *c)
+{
+	p->dir_x = 0;
+	p->dir_y = -1;
+	p->y += 1;
+	if (ft_try(p))
+	{
+		{
+			(&c[*arrows])->x = p->x;
+			(&c[*arrows])->y = p->y;
+			*arrows += 1;
+		}
+	}
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   bmp.c                                              :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/02/28 14:28:45 by eherrero          #+#    #+#             */
+/*   Updated: 2020/03/05 14:57:21 by eherrero         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "cub3d.h"
+
+static void		int_to_char(unsigned char *c, int i)
+{
+	c[0] = (unsigned char)(i);
+	c[1] = (unsigned char)(i >> 8);
+	c[2] = (unsigned char)(i >> 16);
+	c[3] = (unsigned char)(i >> 24);
+}
+
+static int		bmp_header(int fd, int h, int w, int padsize)
+{
+	unsigned char	header[54];
+	int				filesize;
+	int				i;
+
+	filesize = 54 + (w * 3 * h) + (padsize * h);
+	i = -1;
+	while (++i < 54)
+		header[i] = 0;
+	header[0] = (unsigned char)('B');
+	header[1] = (unsigned char)('M');
+	int_to_char(header + 2, filesize);
+	header[10] = (unsigned char)(54);
+	header[14] = (unsigned char)(40);
+	int_to_char(header + 18, w);
+	int_to_char(header + 22, h);
+	header[26] = (unsigned char)(1);
+	header[28] = (unsigned char)(24);
+	return (!(write(fd, header, 54) < 0));
+}
+
+static int		bmp_data(int fd, t_data *data, int padsize)
+{
+	unsigned char	zero[3];
+	int				x;
+	int				y;
+	int				pixel;
+	int				*img;
+
+	img = (int*)data->mlx->screen_data;
+	y = data->mlx->y;
+	zero[0] = 0;
+	zero[1] = 0;
+	zero[2] = 0;
+	while (--y >= 0)
+	{
+		x = 0;
+		while (x < data->mlx->x)
+		{
+			pixel = img[x + y * data->mlx->x];
+			if (write(fd, &pixel, 3) < 0)
+				return (0);
+			if (padsize > 0 && write(fd, &zero, padsize) < 0)
+				return (0);
+			x++;
+		}
+	}
+	return (1);
+}
+
+int				take_screenshot(t_data *data)
+{
+	int padsize;
+	int fd;
+
+	padsize = (4 - ((int)data->mlx->x * 3) % 4) % 4;
+	if ((fd = open("screenshot.bmp", O_WRONLY |
+	O_CREAT, 0777 | O_TRUNC | O_APPEND)) < 0)
+		return (0);
+	bmp_header(fd, data->mlx->y, data->mlx->x, padsize);
+	bmp_data(fd, data, padsize);
+	close(fd);
+	ft_free_and_exit(data);
+	return (1);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   checks_1.c                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/02/25 11:47:41 by eherrero          #+#    #+#             */
+/*   Updated: 2020/03/05 14:08:07 by eherrero         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "cub3d.h"
+
+int				ft_check_n(char *str, t_data *data)
+{
+	if (str[0] != 'N' || str[1] != 'O' || !ft_isspace(str[2]))
+		ft_cub_error();
+	if (data->n)
+		ft_cub_error();
+	else
+		data->n = 1;
+	return (ft_set_dir_texture(str, 2, &(data->n_texture)));
+}
+
+int				ft_check_e(char *str, t_data *data)
+{
+	if (str[0] != 'E' || str[1] != 'A' || !ft_isspace(str[2]))
+		ft_cub_error();
+	if (data->e)
+		ft_cub_error();
+	else
+		data->e = 1;
+	return (ft_set_dir_texture(str, 2, &(data->w_texture)));
+}
+
+int				ft_check_w(char *str, t_data *data)
+{
+	if (str[0] != 'W' || str[1] != 'E' || !ft_isspace(str[2]))
+		ft_cub_error();
+	if (data->w)
+		ft_cub_error();
+	else
+		data->w = 1;
+	return (ft_set_dir_texture(str, 2, &(data->e_texture)));
+}
+
+int				ft_check_s(char *str, t_data *data)
+{
+	if (str[0] != 'S')
+		ft_cub_error();
+	if (str[1] == 'O' && ft_isspace(str[2]))
+	{
+		if (data->s)
+			ft_cub_error();
+		else
+			data->s = 1;
+		return (ft_set_dir_texture(str, 2, &(data->s_texture)));
+	}
+	if (str[1])
+		return (ft_set_new_sprite(str, data));
+	ft_cub_error();
+	return (0);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   checks_2.c                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/02/25 11:48:42 by eherrero          #+#    #+#             */
+/*   Updated: 2020/03/05 14:50:56 by eherrero         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "cub3d.h"
+
+int				ft_check_r(char *str, t_data *data)
+{
+	int i;
+
+	i = 1;
+	if (str[0] != 'R' || !ft_isspace(str[1]))
+		ft_cub_error();
+	while (ft_isspace(str[i]))
+		i++;
+	if (!ft_isdigit(str[i]))
+		ft_cub_error();
+	data->res_x = ft_atoi(str + i);
+	while (ft_isdigit(str[i]))
+		i++;
+	if (!ft_isspace(str[i]))
+		ft_cub_error();
+	while (ft_isspace(str[i]))
+		i++;
+	if (!ft_isdigit(str[i]))
+		ft_cub_error();
+	data->res_y = ft_atoi(str + i);
+	if (data->res_x <= 0 || (data->res_y <= 0))
+		ft_cub_error();
+	data->res_x = data->res_x > 1024 ? 1024 : data->res_x;
+	data->res_y = data->res_y > 1024 ? 1024 : data->res_y;
+	return (0);
+}
+
+int				ft_check_c(char *str, t_data *data)
+{
+	int rgb[3];
+	int	*p;
+
+	p = 0;
+	if ((str[0] == 'C' || str[0] == 'F') && ft_isspace(str[1]))
+		p = str[0] == 'C' ? &(data->ceil_color) : &(data->floor_color);
+	else
+		ft_cub_error();
+	ft_atoi_rgb(str, rgb);
+	if (rgb[0] > 255 || rgb[0] < 0)
+		ft_cub_error();
+	if (rgb[1] > 255 || rgb[1] < 0)
+		ft_cub_error();
+	if (rgb[2] > 255 || rgb[2] < 0)
+		ft_cub_error();
+	*p = rgb[0] * 65536 + rgb[1] * 256 + rgb[2];
+	return (0);
+}
+
+int				ft_check_t(char *str, t_data *data)
+{
+	t_texture	*new_buf;
+	t_texture	*old_buf;
+	int			old_size;
+
+	old_buf = data->sprite_tex_buffer;
+	old_size = data->sprite_tex_num * sizeof(t_texture);
+	if (!ft_isspace(str[1]) && (str[1] != 'A' || !ft_isspace(str[2])))
+		ft_cub_error();
+	data->sprite_tex_num += 1;
+	new_buf = (t_texture*)malloc(sizeof(t_texture));
+	if (!new_buf)
+		ft_memory_error();
+	if (old_buf)
+	{
+		free(new_buf);
+		new_buf = ft_realloc(old_buf, old_size, old_size + sizeof(t_texture));
+	}
+	data->sprite_tex_buffer = new_buf;
+	if (str[1] != 'A')
+		ft_set_sprite_tex_data(str, data, &new_buf[data->sprite_tex_num - 1]);
+	else
+		ft_set_animation_data(str, data, &new_buf[data->sprite_tex_num - 1]);
+	return (0);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   cub3d.c                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/03/03 16:02:32 by eherrero          #+#    #+#             */
+/*   Updated: 2020/03/05 14:36:54 by eherrero         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "cub3d.h"
+
+int		main(int argc, char **argv)
+{
+	t_data		data;
+	t_player	*p;
+
+	data.n = 0;
+	data.s = 0;
+	data.e = 0;
+	data.w = 0;
+	data.screenshot = 0;
+	if (argc < 2 || argc > 3)
+		ft_arg_error();
+	else if (argc == 3)
+		data.screenshot = !ft_strcmp(argv[2], "--save") ? 1 : ft_arg_error();
+	if (!ft_check_extension(argv[1], ".cub"))
+		ft_other_error("wrong .cub", argv[1]);
+	ft_init_data(&data, argv[1], 0.05, 0.15);
+	p = data.player;
+	ft_init_soldier(&data);
+	ft_render(&data, data.mlx, data.player, data.map);
+	ft_loop(&data);
+	return (0);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   errors.c                                           :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/02/25 11:50:29 by eherrero          #+#    #+#             */
+/*   Updated: 2020/03/03 15:01:10 by eherrero         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "cub3d.h"
+
+int				ft_memory_error(void)
+{
+	write(1, "memory error\n", 13);
+	exit(EXIT_FAILURE);
+	return (0);
+}
+
+int				ft_map_error(void)
+{
+	write(1, "map error\n", 10);
+	exit(EXIT_FAILURE);
+	return (0);
+}
+
+int				ft_cub_error(void)
+{
+	write(1, "cub error\n", 10);
+	exit(EXIT_FAILURE);
+	return (0);
+}
+
+int				ft_arg_error(void)
+{
+	write(1, "argument error\n", 15);
+	exit(EXIT_FAILURE);
+	return (0);
+}
+
+int				ft_other_error(char *str, char *str2)
+{
+	int i;
+	int j;
+
+	i = 0;
+	j = 0;
+	while (str[i])
+		i++;
+	while (str2[j])
+		j++;
+	write(1, str, i);
+	write(1, ":", 1);
+	write(1, str2, j);
+	exit(EXIT_FAILURE);
+	return (0);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   extra_maps.c                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/02/28 13:37:52 by eherrero          #+#    #+#             */
+/*   Updated: 2020/03/04 11:55:07 by eherrero         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "cub3d.h"
+
+void	ft_reset_arrow_map(t_data *data)
+{
+	int		i;
+	int		j;
+	t_arrow	**a_map;
+
+	a_map = data->arrow_map;
+	i = -1;
+	while (++i < data->map_height)
+	{
+		j = -1;
+		while (++j < data->map_width)
+			(&a_map[i][j])->used = 0;
+	}
+}
+
+void	ft_set_surrounding(t_data *d, t_coordinate *c, int index, int *arrows)
+{
+	int				x;
+	int				y;
+	t_try_params	t;
+
+	x = c[index].x;
+	y = c[index].y;
+	t.data = d;
+	t.x = x;
+	t.y = y;
+	ft_set_etile(&t, arrows, c);
+	t.x = x;
+	t.y = y;
+	ft_set_stile(&t, arrows, c);
+	t.x = x;
+	t.y = y;
+	ft_set_wtile(&t, arrows, c);
+	t.x = x;
+	t.y = y;
+	ft_set_ntile(&t, arrows, c);
+}
+
+void	ft_update_arrow_map(t_data *data)
+{
+	int				i;
+	int				arrows;
+	t_arrow			**a_map;
+	t_coordinate	history[data->map_height * data->map_width];
+
+	a_map = data->arrow_map;
+	history[0].x = (int)data->player->x;
+	history[0].y = (int)data->player->y;
+	(&a_map[(int)data->player->x][(int)data->player->y])->y = 0;
+	(&a_map[(int)data->player->x][(int)data->player->y])->x = 0;
+	i = 0;
+	arrows = 1;
+	ft_reset_arrow_map(data);
+	while (i < arrows)
+	{
+		ft_set_surrounding(data, history, i, &arrows);
+		i++;
+	}
+}
+
+void	ft_update_extra_maps(t_data *data)
+{
+	t_sprite	*s;
+	int			**c_map;
+	int			y;
+	int			x;
+
+	c_map = data->collision_map;
+	y = -1;
+	while (++y < data->map_height)
+	{
+		x = -1;
+		while (++x < data->map_width)
+			c_map[y][x] = data->map[y][x];
+	}
+	y = -1;
+	s = data->sprite_buffer;
+	while (++y < data->sprites_num)
+	{
+		c_map[(int)s[y].x][(int)s[y].y] = 2;
+	}
+	ft_update_arrow_map(data);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   final_free_1.c                                     :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/02/28 13:36:15 by eherrero          #+#    #+#             */
+/*   Updated: 2020/03/04 18:24:37 by eherrero         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "cub3d.h"
+
+void	ft_free_sprites(t_data *data)
+{
+	t_sprite	*s;
+
+	s = data->sprite_buffer;
+	free(s);
+}
+
+void	ft_free_mlx(t_mlx *mlx)
+{
+	mlx_destroy_image(mlx->ptr, mlx->screen);
+	mlx_destroy_window(mlx->ptr, mlx->window);
+}
+
+int		ft_free_and_exit(void *param)
+{
+	t_data *data;
+
+	data = (t_data*)param;
+	ft_free_map(data);
+	free(data->buffer_z);
+	ft_free_textures(data);
+	free(data->sprite_buffer);
+	free(data->player);
+	ft_free_mlx(data->mlx);
+	exit(0);
+	return (0);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   final_free_2.c                                     :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/02/28 13:36:54 by eherrero          #+#    #+#             */
+/*   Updated: 2020/03/03 15:00:05 by eherrero         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "cub3d.h"
+
+void	ft_free_map(t_data *data)
+{
+	int i;
+
+	i = 0;
+	while (i < data->map_height)
+	{
+		free(data->map[i]);
+		free(data->collision_map[i]);
+		free(data->arrow_map[i]);
+		i++;
+	}
+	free(data->map);
+	free(data->collision_map);
+	free(data->arrow_map);
+}
+
+void	ft_free_texture(t_data *data, t_texture *t)
+{
+	mlx_destroy_image(data->mlx->ptr, t->img);
+}
+
+void	ft_free_textures(t_data *data)
+{
+	int i;
+
+	free(data->n_texture);
+	free(data->s_texture);
+	free(data->e_texture);
+	free(data->w_texture);
+	ft_free_texture(data, data->mlx->n_img);
+	ft_free_texture(data, data->mlx->s_img);
+	ft_free_texture(data, data->mlx->e_img);
+	ft_free_texture(data, data->mlx->w_img);
+	ft_free_texture(data, data->mlx->skybox);
+	free(data->mlx->n_img);
+	free(data->mlx->s_img);
+	free(data->mlx->e_img);
+	free(data->mlx->w_img);
+	free(data->mlx->skybox);
+	i = -1;
+	while (++i < data->sprite_tex_num)
+		ft_free_texture(data, &data->sprite_tex_buffer[i]);
+	free(data->sprite_tex_buffer);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   ft_atoi.c                                          :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2019/11/11 12:34:39 by eherrero          #+#    #+#             */
+/*   Updated: 2020/01/28 15:49:14 by eherrero         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+int	ft_atoi(const char *str)
+{
+	int ret;
+	int sign;
+
+	ret = 0;
+	sign = 1;
+	while ((*str >= 9 && *str <= 13) || *str == 32)
+		str++;
+	if (*str == '+' || *str == '-')
+		sign = *str++ == '-' ? -1 : 1;
+	while (*str >= '0' && *str++ <= '9')
+		ret = *(str - 1) - 48 + 10 * ret;
+	return (ret * sign);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   ft_atoi_rgb.c                                      :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/02/25 11:59:20 by eherrero          #+#    #+#             */
+/*   Updated: 2020/03/05 14:06:13 by eherrero         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "cub3d.h"
+
+void			ft_atoi_rgb(char *str, int rgb[3])
+{
+	int	i;
+
+	i = 1;
+	if (!ft_isspace(str[1]))
+		ft_cub_error();
+	while (ft_isspace(str[i]))
+		i++;
+	if (!ft_isdigit(str[i]))
+		ft_cub_error();
+	rgb[0] = ft_atoi(str + i);
+	while (ft_isdigit(str[i]))
+		i++;
+	if (str[i] != ',' || !ft_isdigit(str[i + 1]))
+		ft_cub_error();
+	rgb[1] = ft_atoi(str + i + 1);
+	i++;
+	while (ft_isdigit(str[i]))
+		i++;
+	if (str[i] != ',' || !ft_isdigit(str[i + 1]))
+		ft_cub_error();
+	rgb[2] = ft_atoi(str + i + 1);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   ft_calloc.c                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/02/25 11:51:18 by eherrero          #+#    #+#             */
+/*   Updated: 2020/02/25 12:21:52 by eherrero         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include <stdlib.h>
+
+static void		ft_kk(void *s, size_t n)
+{
+	char *i;
+
+	i = (char*)s;
+	while (n > 0)
+	{
+		*(i++) = 0;
+		n--;
+	}
+}
+
+void			*ft_calloc(size_t count, size_t size)
+{
+	void *p;
+
+	if (!(p = malloc(count * size)))
+		return (0);
+	ft_kk(p, count * size);
+	return (p);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   ft_check_extension.c                               :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/03/05 14:10:52 by eherrero          #+#    #+#             */
+/*   Updated: 2020/03/05 14:36:01 by eherrero         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+int	ft_check_extension(char *str, char *ext)
+{
+	int i;
+	int j;
+
+	i = 0;
+	j = 0;
+	if (!str || !ext)
+		return (0);
+	while (str[i])
+		i++;
+	while (ext[j])
+		j++;
+	i--;
+	while (--j)
+	{
+		if (i < 0)
+			return (0);
+		if (ext[j] != str[i])
+			return (0);
+		i--;
+	}
+	return (1);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   ft_in_set.c                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/02/25 11:52:11 by eherrero          #+#    #+#             */
+/*   Updated: 2020/02/25 11:52:17 by eherrero         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+int				ft_in_set(char c, char *set)
+{
+	int		i;
+
+	i = 0;
+	while (set[i])
+	{
+		if (*set == c)
+			return (1);
+		i++;
+	}
+	return (0);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   ft_isalnum.c                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2019/11/11 12:32:01 by eherrero          #+#    #+#             */
+/*   Updated: 2019/11/11 12:32:03 by eherrero         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+int	ft_isalnum(int c)
+{
+	return ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
+			(c >= '0' && c <= '9'));
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   ft_isdigit.c                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2019/11/11 12:31:46 by eherrero          #+#    #+#             */
+/*   Updated: 2019/11/11 12:31:47 by eherrero         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+int	ft_isdigit(int c)
+{
+	return (c >= '0' && c <= '9');
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   ft_isspace.c                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/01/24 20:25:10 by eherrero          #+#    #+#             */
+/*   Updated: 2020/01/27 15:05:58 by eherrero         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+int	ft_isspace(char c)
+{
+	return (((c >= 9 && c <= 13) || c == 32) ? 1 : 0);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   ft_itoa.c                                          :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2019/11/05 14:09:35 by eherrero          #+#    #+#             */
+/*   Updated: 2020/03/04 14:27:26 by eherrero         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "cub3d.h"
+
+static int	ft_dgts(long int n)
+{
+	int div;
+	int i;
+
+	div = 1;
+	i = 0;
+	n = n < 0 ? n * -1 : n;
+	if (n < 10)
+		return (1);
+	while (n > 0)
+	{
+		n /= 10;
+		i++;
+	}
+	return (i);
+}
+
+char		*ft_itoa(int n)
+{
+	int			dgts;
+	int			min;
+	long int	n2;
+	char		*p;
+
+	dgts = n >= 0 ? ft_dgts(n) : ft_dgts(n) + 1;
+	if (!(p = malloc(dgts + 1)))
+		return (0);
+	min = n >= 0 ? 0 : 1;
+	p[0] = '-';
+	p[dgts] = 0;
+	n2 = n;
+	n2 *= n >= 0 ? 1 : -1;
+	while (--dgts >= min)
+	{
+		p[dgts] = n2 % 10 + 48;
+		n2 /= 10;
+	}
+	return (p);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   ft_open_check.c                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/03/05 14:41:46 by eherrero          #+#    #+#             */
+/*   Updated: 2020/03/05 14:44:06 by eherrero         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "cub3d.h"
+
+int	ft_open_check(char *map, int flags)
+{
+	int fd;
+
+	if (!map)
+		ft_other_error("null map", "null map");
+	fd = open(map, flags);
+	if (fd < 0)
+		ft_other_error("problem opening map", map);
+	return (fd);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   ft_putstr.c                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/03/03 17:43:16 by eherrero          #+#    #+#             */
+/*   Updated: 2020/03/03 17:47:07 by eherrero         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include <unistd.h>
+
+void	ft_putstr(char *str)
+{
+	int i;
+
+	i = 0;
+	while (str[i])
+		i++;
+	write(1, str, i);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   ft_realloc.c                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/02/25 11:51:43 by eherrero          #+#    #+#             */
+/*   Updated: 2020/03/03 15:01:30 by eherrero         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "cub3d.h"
+
+void			*ft_realloc(void *ptr, int prev_size, int new_size)
+{
+	char	*str;
+	char	*ret;
+	int		i;
+
+	if (!ptr || prev_size <= 0 || new_size <= 0)
+		return (0);
+	i = 0;
+	str = (char *)ptr;
+	ret = ft_calloc(new_size, sizeof(char));
+	if (!ret)
+		return (0);
+	while (i < prev_size)
+	{
+		ret[i] = str[i];
+		i++;
+	}
+	free(str);
+	return ((void *)ret);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   ft_strcmp.c                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/03/03 16:12:45 by eherrero          #+#    #+#             */
+/*   Updated: 2020/03/03 16:13:03 by eherrero         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+int		ft_strcmp(const char *s1, const char *s2)
+{
+	int i;
+
+	if (!s1 && !s2)
+		return (0);
+	i = 0;
+	while (s1[i] == s2[i] && s1[i] && s2[i])
+		i++;
+	return ((unsigned char)s1[i] - (unsigned char)s2[i]);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   ft_strjoin.c                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2019/11/04 19:21:19 by eherrero          #+#    #+#             */
+/*   Updated: 2020/03/04 14:36:04 by eherrero         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "cub3d.h"
+
+static void	ft_linit(int *l1, int *l2)
+{
+	*l1 = 0;
+	*l2 = 0;
+}
+
+static void	ft_jinit(int *j, int *i)
+{
+	*j = -1;
+	*i = -1;
+}
+
+char		*ft_strjoin(char const *s1, char const *s2)
+{
+	int		l[2];
+	int		i;
+	int		j;
+	char	*ret;
+
+	ft_linit(&l[0], &l[1]);
+	if (!s1 || !s2)
+		return (0);
+	while (s1[l[0]] || s2[l[1]])
+	{
+		l[0] = s1[l[0]] ? l[0] + 1 : l[0];
+		l[1] = s2[l[1]] ? l[1] + 1 : l[1];
+	}
+	if (!(ret = malloc((l[0] + l[1] + 1) * sizeof(char))))
+		return (0);
+	ft_jinit(&j, &i);
+	while (s1[++i])
+		ret[i] = s1[i];
+	while (s2[++j])
+	{
+		ret[i] = s2[j];
+		i++;
+	}
+	ret[i] = 0;
+	return (ret);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   get_next_line.c                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2019/12/16 11:06:05 by eherrero          #+#    #+#             */
+/*   Updated: 2020/01/31 19:20:52 by eherrero         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "get_next_line.h"
+
+t_list	*ft_get_list(t_list **head, int fd)
+{
+	t_list *tmp;
+
+	tmp = *head;
+	while (tmp)
+	{
+		if (tmp->fd == fd)
+			return (tmp);
+		tmp = tmp->next;
+	}
+	if (!(tmp = malloc(sizeof(t_list))))
+		return (0);
+	tmp->str = 0;
+	tmp->fd = fd;
+	tmp->open = 1;
+	tmp->next = *head;
+	*head = tmp;
+	return (tmp);
+}
+
+int		ft_aux(char **line, t_list *tmp, int pos)
+{
+	char *aux;
+
+	if (!(*line = ft_strjoin_free(*line, ft_strndup(tmp->str, pos), 'B')))
+		return (0);
+	aux = ft_strdup(tmp->str + pos + 1);
+	free(tmp->str);
+	tmp->str = aux;
+	return (1);
+}
+
+int		ft_supr_lst(t_list **head, t_list *to_del)
+{
+	t_list *tmp;
+
+	tmp = *head;
+	if (*head == to_del)
+	{
+		*head = tmp->next;
+		free(to_del->str);
+		free(to_del);
+		return (-1);
+	}
+	while (tmp)
+	{
+		if (tmp->next == to_del)
+		{
+			tmp->next = to_del->next;
+			free(to_del->str);
+			to_del->str = 0;
+			free(to_del);
+			to_del = 0;
+			return (-1);
+		}
+		tmp = tmp->next;
+	}
+	return (-1);
+}
+
+int		get_next_line_rec(int fd, char **line)
+{
+	static t_list	*head;
+	t_list			*tmp;
+	int				pos;
+	char			line_r[BUFFER_SIZE + 1];
+
+	if (!(tmp = ft_get_list(&head, fd)))
+		return (-1);
+	pos = ft_get_pos(tmp->str, "\n\r");
+	if (pos >= 0)
+		return (!ft_aux(line, tmp, pos) ? -1 : 1);
+	while (tmp->open)
+	{
+		pos = read(fd, line_r, BUFFER_SIZE);
+		if (pos < 0)
+			return (ft_supr_lst(&head, tmp));
+		line_r[pos] = 0;
+		tmp->open = pos;
+		tmp->str = ft_strjoin_free(tmp->str, line_r, 'L');
+		pos = ft_get_pos(tmp->str, "\n\r");
+		if (pos >= 0)
+			return (!ft_aux(line, tmp, pos) ? -1 : 1);
+	}
+	*line = ft_strjoin_free(*line, ft_strdup(tmp->str), 'B');
+	ft_supr_lst(&head, tmp);
+	return (!*line ? -1 : 0);
+}
+
+int		get_next_line(int fd, char **line)
+{
+	int i;
+
+	if (fd < 0 || !line || BUFFER_SIZE <= 0)
+		return (-1);
+	*line = 0;
+	i = get_next_line_rec(fd, line);
+	return (i);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   get_next_line_utils.c                              :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2019/12/16 11:05:58 by eherrero          #+#    #+#             */
+/*   Updated: 2020/01/31 19:21:14 by eherrero         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "get_next_line.h"
+
+char	*ft_strjoin_free(char *str1, char *str2, char c)
+{
+	if (!str1)
+	{
+		if (!(str1 = ft_strdup("")))
+			return (0);
+		if (c == 'R')
+			c = 'B';
+		else if (c != 'B')
+			c = 'L';
+	}
+	if (!str2)
+	{
+		if (!(str2 = ft_strdup("")))
+			return (0);
+		if (c == 'B' || c == 'L')
+			c = 'B';
+		else
+			c = 'R';
+	}
+	return (ft_strjoin_free_aux(str1, str2, c));
+}
+
+char	*ft_strjoin_free_aux(char *str1, char *str2, char c)
+{
+	int		i;
+	int		j;
+	char	*ret;
+
+	i = 0;
+	j = 0;
+	while (str1[i])
+		i++;
+	while (str2[j])
+		j++;
+	if (!(ret = malloc(i + j + 1)))
+		return (0);
+	i = -1;
+	j = -1;
+	while (str1[++i])
+		ret[i] = str1[i];
+	while (str2[++j])
+		ret[i + j] = str2[j];
+	ret[i + j] = 0;
+	if (c == 'L' || c == 'B')
+		free(str1);
+	if (c == 'R' || c == 'B')
+		free(str2);
+	return (ret);
+}
+
+char	*ft_strndup(char *str, int n)
+{
+	int		i;
+	char	*ret;
+
+	i = 0;
+	while (str[i])
+		i++;
+	i = i > n ? i : n;
+	if (!(ret = malloc(i + 1)))
+		return (0);
+	i = 0;
+	while (str[i] && i < n)
+	{
+		ret[i] = str[i];
+		i++;
+	}
+	ret[i] = 0;
+	return (ret);
+}
+
+char	*ft_strdup(char *str)
+{
+	int i;
+
+	i = 0;
+	while (str[i])
+		i++;
+	return (ft_strndup(str, i));
+}
+
+int		ft_get_pos(char *str, char *set)
+{
+	int i;
+	int j;
+
+	i = -1;
+	j = -1;
+	if (!str || !set)
+		return (-1);
+	while (str[++i])
+	{
+		while (set[++j])
+			if (set[j] == str[i])
+				return (i);
+		j = -1;
+	}
+	return (-1);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   hooks.c                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/02/28 13:33:49 by eherrero          #+#    #+#             */
+/*   Updated: 2020/03/04 17:12:54 by eherrero         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "cub3d.h"
+
+int		ft_key_release_hook(int keycode, void *params)
+{
+	ft_check_movement((t_data *)params, keycode, 0);
+	return (0);
+}
+
+int		ft_loop_hook(void *params)
+{
+	t_data		*data;
+	t_player	*player;
+	t_mlx		*mlx;
+	int			moved;
+
+	data = (t_data *)params;
+	player = data->player;
+	mlx = data->mlx;
+	moved = ft_move(data, data->player);
+	{
+		if ((player->dir_x == 1 || player->dir_x == -1) ||
+			(player->dir_y == 1 || player->dir_y == -1))
+			ft_player_rotate(player, player->rot_speed - 0.001, 0);
+		ft_render(data, data->mlx, data->player, data->map);
+		mlx_put_image_to_window(mlx->ptr, mlx->window, mlx->screen, 0, 0);
+		data->animation_num++;
+		ft_update_extra_maps(data);
+		ft_move_soldiers(data);
+		if (data->animation_num >= data->animation_cycle)
+			data->animation_num = 0;
+	}
+	return (0);
+}
+
+int		ft_key_hook(int keycode, void *params)
+{
+	int		y;
+	t_data	*data;
+
+	data = (t_data*)params;
+	y = -1;
+	if (keycode == 126)
+		if (!data->shooting)
+			data->shooting++;
+	if (keycode == 53)
+		ft_free_and_exit(data);
+	ft_check_movement(data, keycode, 1);
+	return (0);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   hud.c                                              :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/02/28 13:35:17 by eherrero          #+#    #+#             */
+/*   Updated: 2020/03/05 14:00:44 by eherrero         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "cub3d.h"
+
+void	ft_putmap_aux(t_data *data, t_putmap *f, int c)
+{
+	if (c == 1)
+	{
+		f->map_height = data->res_y / 5;
+		f->map_width = data->res_x / 5;
+		f->x = data->res_x - f->map_width;
+		f->y = data->res_y - f->map_height;
+		f->divider_w = (float)f->map_width / 21.0;
+		f->divider_h = (float)f->map_height / 21.0;
+		return ;
+	}
+	if (f->rel_y >= data->map_height || f->rel_y < 0
+			|| f->rel_x >= data->map_width || f->rel_x < 0)
+		f->color = 6579300;
+	else if (f->rel_y != f->p_y || f->rel_x != f->p_x)
+	{
+		if ((f->aux = data->collision_map[f->rel_x][f->rel_y]))
+		{
+			if (f->aux == 3)
+				f->color = 6579300;
+			else
+				f->color = f->aux == 1 ? 0 : 16711935;
+		}
+	}
+	else
+		f->color = 16711680;
+}
+
+void	ft_putmap(t_data *data)
+{
+	t_putmap f;
+
+	f.p_x = (int)data->player->x;
+	f.p_y = (int)data->player->y;
+	f.img = (int*)data->mlx->screen_data;
+	ft_putmap_aux(data, &f, 1);
+	f.i = f.y - 1;
+	while (++f.i < data->res_y)
+	{
+		f.j = f.x - 1;
+		f.rel_x = f.p_x + (int)((double)(f.i - f.y) / f.divider_h) - 10;
+		f.mul = f.i * data->res_x;
+		while (++f.j < data->res_x)
+		{
+			f.color = 25;
+			f.rel_y = f.p_y + (int)((double)(f.j - f.x) / f.divider_w) - 10;
+			ft_putmap_aux(data, &f, 0);
+			f.img[f.mul + f.j] = f.color == 25 ? f.img[f.mul + f.j] : f.color;
+		}
+	}
+}
+
+void	ft_lifebar(t_data *data)
+{
+	t_lifebar	ft;
+
+	ft.p = data->player;
+	ft.img = (int*)data->mlx->screen_data;
+	ft.start_y = data->res_y / 15;
+	ft.start_x = data->res_x / 15;
+	ft.end_x = ft.start_x + data->res_x / 3;
+	ft.end_y = ft.start_y + data->res_y / 15;
+	ft.health_ptg = (ft.end_x - ft.start_x) * ft.p->health / 100 + ft.start_x;
+	ft.mod_y = ft.start_y;
+	while (ft.mod_y <= ft.end_y)
+	{
+		ft.mod_x = ft.start_x;
+		while (ft.mod_x <= ft.end_x)
+		{
+			if (ft.mod_y == ft.start_y || ft.mod_y == ft.end_y ||
+					ft.mod_x == ft.start_x || ft.mod_x == ft.end_x)
+				ft.img[ft.mod_y * data->res_x + ft.mod_x] = 8355840;
+			else if (ft.mod_x <= ft.health_ptg)
+				ft.img[ft.mod_y * data->res_x + ft.mod_x] = 16711680;
+			ft.mod_x++;
+		}
+		ft.mod_y++;
+	}
+}
+
+void	ft_update_hud_aux(t_data *data, t_update_hud *ft)
+{
+	if (data->shooting)
+	{
+		data->shooting++;
+		data->weapon_state += !(data->shooting % 10) ? 1 : 0;
+		if (data->weapon_state >= 4)
+		{
+			data->weapon_state = 0;
+			data->shooting = 0;
+		}
+	}
+	ft->t = &data->weapon[data->weapon_state];
+	ft->img = ft->t->addr;
+	ft->screen_y = data->res_y - (int)data->res_y / 4;
+	ft->y = 0;
+	ft->screen = (int*)data->mlx->screen_data;
+	ft->x_max = 2 * (int)data->res_x / 3;
+	ft->x_step = (double)ft->t->width / (data->res_x / 3);
+	ft->y_step = (double)ft->t->height / ((double)data->res_y / 4);
+}
+
+void	ft_update_hud(t_data *data)
+{
+	t_update_hud	ft;
+
+	ft_update_hud_aux(data, &ft);
+	while (ft.screen_y < data->res_y)
+	{
+		ft.screen_x = data->res_x / 3;
+		ft.x = 0;
+		while (ft.screen_x < ft.x_max)
+		{
+			ft.color = ft.img[(int)ft.y * (int)ft.t->width + (int)ft.x];
+			if (ft.color != 9961608)
+				ft.screen[ft.screen_x + data->res_x * ft.screen_y] = ft.color;
+			ft.x += ft.x_step;
+			ft.screen_x++;
+			if (ft.x >= ft.t->width)
+				ft.x = ft.t->width - 1;
+		}
+		ft.y += ft.y_step;
+		ft.screen_y++;
+		if (ft.y >= ft.t->height)
+			ft.y = ft.t->height - 1;
+		ft_lifebar(data);
+		ft_putmap(data);
+	}
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   init_assets.c                                      :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/03/03 16:05:55 by eherrero          #+#    #+#             */
+/*   Updated: 2020/03/05 14:46:22 by eherrero         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "cub3d.h"
+
+void	ft_init_player(t_player *player, double r_speed, double m_speed)
+{
+	player->x = 0;
+	player->y = 0;
+	player->dir_x = 0;
+	player->dir_y = 0;
+	player->plane_x = 0;
+	player->plane_y = 0;
+	player->rot_speed = r_speed;
+	player->mov_speed = m_speed;
+	player->health = 100;
+	player->ammo = 8;
+	player->move_them = 0;
+	player->moving_forward = 0;
+	player->moving_backward = 0;
+	player->moving_left = 0;
+	player->moving_right = 0;
+	player->rotating_right = 0;
+	player->rotating_left = 0;
+}
+
+void	ft_init_mlx(t_data *data, char *map_name)
+{
+	t_mlx	*mlx;
+	int		bpp;
+	int		e;
+	int		size_line;
+
+	e = 1;
+	bpp = 4;
+	size_line = data->res_x * 4;
+	mlx = data->mlx;
+	mlx->x = data->res_x > 0 ? data->res_x : 500;
+	mlx->y = data->res_y > 0 ? data->res_y : 500;
+	mlx->screen = mlx_new_image(mlx->ptr, mlx->x, mlx->y);
+	mlx->screen_data = mlx_get_data_addr(mlx->screen, &bpp, &size_line, &e);
+	ft_init_textures(data);
+	if (!mlx->ptr)
+		ft_memory_error();
+	if (!(mlx->window = mlx_new_window(mlx->ptr, mlx->x, mlx->y, map_name)))
+		ft_memory_error();
+}
+
+void	ft_init_extra_maps(t_data *data)
+{
+	int		**c_map;
+	t_arrow	**a_map;
+	int		i;
+	int		j;
+
+	i = -1;
+	c_map = (int**)malloc(sizeof(int*) * data->map_height);
+	a_map = (t_arrow**)malloc(sizeof(t_arrow*) * data->map_height);
+	if (!a_map || !c_map)
+		ft_memory_error();
+	while (++i < data->map_height)
+	{
+		c_map[i] = (int*)malloc(sizeof(int) * data->map_width);
+		a_map[i] = (t_arrow*)malloc(sizeof(t_arrow) * data->map_width);
+		if (!c_map[i] || !a_map[i])
+			ft_memory_error();
+		j = -1;
+		while (++j < data->map_width)
+			a_map[i][j].used = 0;
+	}
+	data->collision_map = c_map;
+	data->arrow_map = a_map;
+}
+
+void	ft_init_data(t_data *d, char *map, double rsp, double msp)
+{
+	t_player	*player;
+	t_mlx		*mlx;
+
+	d->weapon_state = 0;
+	d->shooting = 0;
+	d->animation_num = 0;
+	d->animation_cycle = 48;
+	player = (t_player*)malloc(sizeof(t_player));
+	mlx = (t_mlx*)malloc(sizeof(t_mlx));
+	if (!player || !mlx)
+		ft_memory_error();
+	mlx->ptr = mlx_init();
+	d->player = player;
+	d->mlx = mlx;
+	ft_init_player(player, rsp, msp);
+	d->sprite_buffer = 0;
+	d->sprites_num = 0;
+	d->sprite_tex_buffer = 0;
+	d->sprite_tex_num = 0;
+	ft_get_map(map, d);
+	d->buffer_z = (double*)malloc(d->res_x * sizeof(double));
+	if (!d->buffer_z)
+		ft_memory_error();
+	ft_init_mlx(d, map);
+	ft_init_extra_maps(d);
+}
+
+void	ft_loop(t_data *data)
+{
+	t_mlx *mlx;
+
+	mlx = data->mlx;
+	mlx_hook(mlx->window, 2, 1, ft_key_hook, data);
+	mlx_hook(mlx->window, 3, 0, ft_key_release_hook, data);
+	mlx_hook(mlx->window, 17, 0, ft_free_and_exit, data);
+	mlx_loop_hook(mlx->ptr, ft_loop_hook, data);
+	mlx_loop(mlx->ptr);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   init_textures.c                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/03/03 16:04:55 by eherrero          #+#    #+#             */
+/*   Updated: 2020/03/03 16:05:45 by eherrero         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "cub3d.h"
+
+void	ft_init_weapon(t_data *data)
+{
+	ft_init_texture(data->mlx, &data->weapon[0], "assets/weapon/pistol_0.xpm");
+	ft_init_texture(data->mlx, &data->weapon[1], "assets/weapon/pistol_1.xpm");
+	ft_init_texture(data->mlx, &data->weapon[2], "assets/weapon/pistol_2.xpm");
+	ft_init_texture(data->mlx, &data->weapon[3], "assets/weapon/pistol_3.xpm");
+	ft_init_texture(data->mlx, &data->weapon[4], "assets/weapon/pistol_4.xpm");
+}
+
+void	ft_init_textures(t_data *data)
+{
+	t_mlx	*mlx;
+
+	mlx = data->mlx;
+	ft_init_weapon(data);
+	mlx->n_img = (t_texture*)malloc(sizeof(t_texture));
+	mlx->s_img = (t_texture*)malloc(sizeof(t_texture));
+	mlx->w_img = (t_texture*)malloc(sizeof(t_texture));
+	mlx->e_img = (t_texture*)malloc(sizeof(t_texture));
+	mlx->skybox = (t_texture*)malloc(sizeof(t_texture));
+	if (!mlx->n_img || !mlx->s_img || !mlx->e_img || !mlx->w_img
+			|| !mlx->skybox)
+		ft_memory_error();
+	ft_init_texture(mlx, mlx->n_img, data->n_texture);
+	ft_init_texture(mlx, mlx->s_img, data->s_texture);
+	ft_init_texture(mlx, mlx->e_img, data->e_texture);
+	ft_init_texture(mlx, mlx->w_img, data->w_texture);
+	ft_init_texture(mlx, mlx->skybox, "assets/textures/skybox.xpm");
+}
+
+void	ft_init_extra_animations(t_data *data)
+{
+	t_texture *t;
+
+	t = (t_texture *)malloc(sizeof(t_texture));
+	if (!t)
+		ft_memory_error();
+	ft_init_texture(data->mlx, t, "assets/soldier_anim/soldier_shoot.xpm");
+	t->width = 64;
+	data->soldier_shoot = t;
+}
+
+void	ft_init_soldier(t_data *data)
+{
+	t_texture *t;
+
+	ft_init_texture(data->mlx, &data->soldier_anim[0],
+			"assets/soldier_anim/soldier_idle.xpm");
+	ft_init_texture(data->mlx, &data->soldier_anim[1],
+			"assets/soldier_anim/soldier_walk1.xpm");
+	ft_init_texture(data->mlx, &data->soldier_anim[2],
+			"assets/soldier_anim/soldier_walk2.xpm");
+	ft_init_texture(data->mlx, &data->soldier_anim[3],
+			"assets/soldier_anim/soldier_walk3.xpm");
+	ft_init_texture(data->mlx, &data->soldier_anim[4],
+			"assets/soldier_anim/soldier_walk4.xpm");
+	t = &(data->soldier_anim[0]);
+	t->width = 64;
+	t = &(data->soldier_anim[1]);
+	t->width = 64;
+	t = &(data->soldier_anim[2]);
+	t->width = 64;
+	t = &(data->soldier_anim[3]);
+	t->width = 64;
+	t = &(data->soldier_anim[4]);
+	t->width = 64;
+	ft_init_extra_animations(data);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   line_handler.c                                     :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/02/25 11:46:58 by eherrero          #+#    #+#             */
+/*   Updated: 2020/03/05 14:57:38 by eherrero         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "cub3d.h"
+
+int				ft_first_line_check(int *line, int **tab, char *str, t_data *d)
+{
+	t_first_line_check	ft;
+	int					*row;
+
+	ft.i = 0;
+	ft.count = 0;
+	str[ft.i] = str[ft.i] != '1' ? ft_map_error() : str[ft.i];
+	while (str[ft.i])
+	{
+		if (str[ft.i] == '1' || str[ft.i] == ' ')
+			ft.count++;
+		ft.i++;
+	}
+	row = (int *)malloc(sizeof(int) * ft.count);
+	d->map_width = !row ? ft_memory_error() : ft.count;
+	tab[0] = row;
+	ft.i = 0;
+	while (ft.i < d->map_width && str[ft.i])
+	{
+		tab[0][ft.i] = str[ft.i] == '1' ? 1 : 3;
+		ft.i++;
+	}
+	*line = 1;
+	return (0);
+}
+
+void			ft_check_map_line_aux(t_check_map_line *ft,
+		int *l, t_data *data, char *s)
+{
+	while (s[ft->i])
+	{
+		if (!ft_isdigit(s[ft->i]) && !ft_isspace(s[ft->i]))
+			ft_set_pos(data->player, s[ft->i], ft->i, *l);
+		data->map[*l][ft->count] = !ft_isdigit(s[ft->i]) ? 0 : s[ft->i] - 48;
+		data->map[*l][ft->count] += !ft_isspace(s[ft->i]) ? 0 : 3;
+		if ((data->map[*l][ft->count] < 0 || data->map[*l][ft->count] > 3)
+				&& data->map[*l][ft->count] != ' ')
+			ft_map_error();
+		if (data->map[*l][ft->count] == 2)
+		{
+			ft_set_map_sprite(*l, ft->count, data);
+			data->map[*l][ft->count] = 0;
+		}
+		ft_check_space_valid(data->map, *l, ft->count, data->map_width);
+		ft->count++;
+		ft->last_element = s[ft->i++];
+	}
+	ft_fill_line(ft, data, l);
+}
+
+int				ft_check_map_line(int *line, int **tab, char *str, t_data *data)
+{
+	int					*row;
+	t_check_map_line	ft;
+
+	ft.count = 0;
+	ft.last_element = 0;
+	if (((ft.i = 0) || 1) && *line == 0)
+		return (ft_first_line_check(line, tab, str, data));
+	if (!(row = (int *)malloc(sizeof(int) * data->map_width)))
+		ft_memory_error();
+	tab[*line] = row;
+	data->map = tab;
+	ft_check_map_line_aux(&ft, line, data, str);
+	ft.last_element = ft.last_element == ' ' ? '1' : ft.last_element;
+	*line = ft.last_element != '1' ? ft_map_error() : *line + 1;
+	return (ft_check_full(str, '1'));
+}
+
+int				ft_check_line(int *line, int **tab, char *str, t_data *data)
+{
+	write(1, "line(fcl): ", 11);
+	ft_putstr(str);
+	write(1, "\n", 1);
+	if (str[0] != '1')
+	{
+		if (*line && str[0] == ' ')
+			return (ft_check_map_line(line, tab, str, data));
+		else
+			return (!(*line) ? ft_check_info_line(str, data) : -1);
+	}
+	return (ft_check_map_line(line, tab, str, data));
+}
+
+int				ft_get_map(char *map, t_data *data)
+{
+	int				l;
+	int				**t;
+	t_check_line	ft;
+
+	if (!(t = (int **)malloc(sizeof(int *) * 20)))
+		return (ft_memory_error());
+	l = 0;
+	ft.finished = 0;
+	ft.fd = ft_open_check(map, O_RDONLY);
+	while (get_next_line(ft.fd, &(ft.str)))
+	{
+		if ((ft.finished = ft_check_line(&l, t, ft.str, data)) < 0)
+			ft_map_error();
+		if (l && !(l % 20))
+			if (!(t = ft_realloc(t, l * sizeof(int *),
+							(l + 20) * sizeof(int *))))
+				return (ft_memory_error());
+		free(ft.str);
+	}
+	if (!data->n || !data->s || !data->e || !data->w)
+		ft_cub_error();
+	free(ft.str);
+	data->map = t;
+	data->map_height = l;
+	return (ft.finished ? 1 : ft_map_error());
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   line_handler_utils.c                               :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/03/04 17:55:23 by eherrero          #+#    #+#             */
+/*   Updated: 2020/03/04 18:07:46 by eherrero         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "cub3d.h"
+
+int				ft_set_map_sprite(int x, int y, t_data *data)
+{
+	char	*str1;
+	char	*str2;
+	char	*str3;
+
+	str1 = ft_itoa(x);
+	str2 = ft_strjoin("S ", str1);
+	free(str1);
+	str1 = ft_strjoin(str2, " ");
+	free(str2);
+	str2 = ft_itoa(y);
+	str3 = ft_strjoin(str1, str2);
+	free(str1);
+	free(str2);
+	str2 = ft_strjoin(str3, " 0 H 1 0");
+	free(str3);
+	ft_set_new_sprite(str2, data);
+	free(str2);
+	return (1);
+}
+
+int				ft_check_info_line(char *str, t_data *data)
+{
+	if (str[0] == 'R')
+		return (ft_check_r(str, data));
+	if (str[0] == 'N')
+		return (ft_check_n(str, data));
+	if (str[0] == 'S')
+		return (ft_check_s(str, data));
+	if (str[0] == 'W')
+		return (ft_check_w(str, data));
+	if (str[0] == 'E')
+		return (ft_check_e(str, data));
+	if (str[0] == 'C' || str[0] == 'F')
+		return (ft_check_c(str, data));
+	if (str[0] == 'T')
+		return (ft_check_t(str, data));
+	if (!str[0])
+		return (0);
+	return (ft_cub_error());
+}
+
+void			ft_validate_coordinate(t_coordinate c, int s, int **t, int c1)
+{
+	int comp2;
+
+	if (c.x < 0 || c.y < 0 || c.y >= s)
+		return ;
+	comp2 = t[c.x][c.y];
+	if (comp2 != 1 && comp2 != c1)
+		ft_map_error();
+}
+
+void			ft_check_space_valid(int **tab, int x, int y, int size)
+{
+	int				comp;
+	t_coordinate	c;
+
+	c.x = x;
+	c.y = y;
+	if (c.x < 0 || c.y < 0 || c.y >= size)
+		ft_cub_error();
+	comp = tab[c.x][c.y];
+	if (comp == 1)
+		return ;
+	c.y--;
+	ft_validate_coordinate(c, size, tab, comp);
+	c.x--;
+	ft_validate_coordinate(c, size, tab, comp);
+	c.y++;
+	ft_validate_coordinate(c, size, tab, comp);
+	c.y++;
+	ft_validate_coordinate(c, size, tab, comp);
+}
+
+void			ft_fill_line(t_check_map_line *ft, t_data *data, int *l)
+{
+	if (ft->count < data->map_width)
+	{
+		while (ft->count < data->map_width)
+		{
+			data->map[*l][ft->count] = 3;
+			ft_check_space_valid(data->map, *l, ft->count, data->map_width);
+			ft->count++;
+		}
+		ft->last_element = ' ';
+	}
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   map_reader_utils.c                                 :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/02/25 11:53:29 by eherrero          #+#    #+#             */
+/*   Updated: 2020/03/04 18:40:23 by eherrero         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "cub3d.h"
+
+void			ft_set_pos(t_player *player, char c, int x, int y)
+{
+	float	rect;
+
+	rect = 1.57;
+	if (player->x < 0 || player->y < 0)
+		return ;
+	player->y = (double)x + 0.5;
+	player->x = (double)y + 0.5;
+	if (c == 'N' || c == 'S')
+	{
+		player->dir_y = 0;
+		player->dir_x = c != 'N' ? 1 : -1;
+		player->plane_x = 0;
+		player->plane_y = c != 'N' ? 0.66 : -0.66;
+	}
+	else if (c == 'E' || c == 'W')
+	{
+		player->dir_x = 0;
+		player->dir_y = c == 'E' ? 1 : -1;
+		player->plane_y = 0;
+		player->plane_x = c == 'E' ? -0.66 : 0.66;
+	}
+	else
+		ft_map_error();
+}
+
+int				ft_check_full(char *str, char c)
+{
+	int i;
+
+	i = -1;
+	while (str[++i])
+		if (str[i] != c || str[i] == ' ')
+			return (0);
+	return (1);
+}
+
+int				ft_set_dir_texture(char *str, int i, char **texture)
+{
+	int		j;
+	int		k;
+	char	*ret;
+
+	k = 0;
+	while (ft_isspace(str[i]))
+		i++;
+	if (!str[i])
+		ft_cub_error();
+	j = i;
+	while (!ft_isspace(str[i]) && str[i])
+		i++;
+	ret = (char *)malloc(i - j + 1);
+	if (!ret)
+		ft_memory_error();
+	while (j < i)
+		ret[k++] = str[j++];
+	ret[k] = 0;
+	*texture = ret;
+	return (0);
+}
+
+char			*ft_get_text(char *str)
+{
+	int		i;
+	int		j;
+	int		k;
+	char	*ret;
+
+	i = 0;
+	if (!ft_isspace(str[i]))
+		ft_cub_error();
+	while (str[i] && ft_isspace(str[i]))
+		i++;
+	if (!str[i])
+		ft_cub_error();
+	j = i;
+	while (str[i])
+		i++;
+	ret = (char*)malloc(i - j + 1);
+	if (!ret)
+		ft_memory_error();
+	k = -1;
+	while (++k < i - j)
+		ret[k] = str[k + j];
+	ret[i - j] = 0;
+	return (ret);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   player_move.c                                      :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/02/28 13:42:01 by eherrero          #+#    #+#             */
+/*   Updated: 2020/03/03 15:00:21 by eherrero         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "cub3d.h"
+
+void	ft_check_movement(t_data *data, int keycode, int state)
+{
+	if (keycode == 13)
+		data->player->moving_forward = state;
+	if (keycode == 1)
+		data->player->moving_backward = state;
+	if (keycode == 124)
+		data->player->rotating_left = state;
+	if (keycode == 123)
+		data->player->rotating_right = state;
+	if (keycode == 0)
+		data->player->moving_right = state;
+	if (keycode == 2)
+		data->player->moving_left = state;
+}
+
+int		ft_can_walk(t_data *data, int x, int y)
+{
+	t_sprite	*s;
+	int			i;
+
+	i = 0;
+	s = data->sprite_buffer;
+	while (i < data->sprites_num)
+	{
+		if ((int)s[i].x == x && (int)s[i].y == y)
+			return (0);
+		i++;
+	}
+	return (1);
+}
+
+int		ft_player_advance(t_data *data, int code, double step)
+{
+	t_player	*p;
+	int			mod;
+
+	mod = code == 1 || code == 3 ? -1 : 1;
+	p = data->player;
+	if (code == 0 || code == 1)
+	{
+		if (!data->collision_map[(int)(p->x + mod * p->dir_x * step)]
+				[(int)p->y])
+			p->x += mod * p->dir_x * step;
+		if (!data->collision_map[(int)p->x]
+				[(int)(p->y + mod * p->dir_y * step)])
+			p->y += mod * p->dir_y * step;
+	}
+	else if (code == 2 || code == 3)
+	{
+		if (!data->collision_map[(int)(p->x - mod * p->dir_y * step)]
+				[(int)p->y])
+			p->x -= mod * p->dir_y * step;
+		if (!data->collision_map[(int)p->x]
+				[(int)(p->y + mod * p->dir_x * step)])
+			p->y += mod * p->dir_x * step;
+	}
+	return (1);
+}
+
+int		ft_player_rotate(t_player *player, double a, int code)
+{
+	if (code)
+		a *= -1;
+	player->x2 = player->dir_x;
+	player->dir_x = player->dir_x * cos(a) - player->dir_y * sin(a);
+	player->dir_y = player->x2 * sin(a) + player->dir_y * cos(a);
+	player->x2 = player->plane_x;
+	player->plane_x = player->plane_x * cos(a) - player->plane_y * sin(a);
+	player->plane_y = player->x2 * sin(a) + player->plane_y * cos(a);
+	return (1);
+}
+
+int		ft_move(t_data *data, t_player *player)
+{
+	double	step;
+	double	a;
+	int		moved;
+
+	moved = 0;
+	step = player->mov_speed;
+	a = player->rot_speed;
+	if (player->moving_forward)
+		moved += ft_player_advance(data, 0, step);
+	if (player->moving_backward)
+		moved += ft_player_advance(data, 1, step);
+	if (player->moving_right)
+		moved += ft_player_advance(data, 2, step);
+	if (player->moving_left)
+		moved += ft_player_advance(data, 3, step);
+	if (player->rotating_right)
+		moved += ft_player_rotate(player, a, 0);
+	if (player->rotating_left)
+		moved += ft_player_rotate(player, a, 1);
+	return (moved);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   render.c                                           :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/02/25 14:56:27 by eherrero          #+#    #+#             */
+/*   Updated: 2020/03/03 16:23:17 by eherrero         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "cub3d.h"
+
+void		ft_step_calc_2(t_ray *ray, double x, double y)
+{
+	if (ray->dir_x < 0)
+	{
+		ray->step_x = -1;
+		ray->side_dist_x = (x - ray->x) * ray->delta_dist_x;
+	}
+	else
+	{
+		ray->step_x = 1;
+		ray->side_dist_x = (ray->x + 1.0 - x) * ray->delta_dist_x;
+	}
+	if (ray->dir_y < 0)
+	{
+		ray->step_y = -1;
+		ray->side_dist_y = (y - ray->y) * ray->delta_dist_y;
+	}
+	else
+	{
+		ray->step_y = 1;
+		ray->side_dist_y = (ray->y + 1.0 - y) * ray->delta_dist_y;
+	}
+}
+
+void		ft_step_calc(t_ray *ray, t_player *player)
+{
+	ft_step_calc_2(ray, player->x, player->y);
+}
+
+double		ft_ray_dist(t_ray *ray, t_player *player)
+{
+	if (ray->side)
+		return ((ray->y - player->y + (1 - ray->step_y) / 2) / ray->dir_y);
+	return ((ray->x - player->x + (1 - ray->step_x) / 2) / ray->dir_x);
+}
+
+void		ft_ray_side_dist(t_ray *ray)
+{
+	if (ray->side_dist_x < ray->side_dist_y)
+	{
+		ray->side_dist_x += ray->delta_dist_x;
+		ray->x += ray->step_x;
+		ray->side = 0;
+	}
+	else
+	{
+		ray->side_dist_y += ray->delta_dist_y;
+		ray->y += ray->step_y;
+		ray->side = 1;
+	}
+}
+
+void		ft_render(t_data *data, t_mlx *mlx, t_player *player, int **map)
+{
+	t_ray	ray;
+	double	camera_x;
+	int		ray_col;
+
+	ray_col = -1;
+	while (++ray_col < data->res_x)
+	{
+		camera_x = 2 * ray_col / (double)(mlx->x) - 1;
+		ft_init_ray(&ray, player, camera_x);
+		ft_step_calc(&ray, player);
+		while (!ray.hit)
+		{
+			ft_ray_side_dist(&ray);
+			if (map[ray.x][ray.y] > 0)
+				ray.hit = 1;
+		}
+		ray.perp_wall_dist = ft_ray_dist(&ray, player);
+		data->buffer_z[ray_col] = ray.perp_wall_dist;
+		ray.col = mlx->x - ray_col;
+		ft_paint_col(&ray, data);
+	}
+	ft_paint_sprites(data);
+	ft_update_hud(data);
+	if (data->screenshot)
+		take_screenshot(data);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   render_utils.c                                     :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/02/25 14:57:41 by eherrero          #+#    #+#             */
+/*   Updated: 2020/03/04 13:47:47 by eherrero         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "cub3d.h"
+
+void		ft_init_ray(t_ray *ray, t_player *player, double camera_x)
+{
+	ray->dir_x = player->dir_x + player->plane_x * camera_x;
+	ray->dir_y = player->dir_y + player->plane_y * camera_x;
+	ray->x = (int)(player->x);
+	ray->y = (int)(player->y);
+	ray->hit = 0;
+	ray->side = 0;
+	ray->delta_dist_x = fabs(1 / ray->dir_x);
+	ray->delta_dist_y = fabs(1 / ray->dir_y);
+	ft_step_calc(ray, player);
+}
+
+void		ft_paint_sky_col(t_ray *ray, t_data *d, t_paint_col *ft, int *img)
+{
+	t_paint_sky_col	f;
+
+	f.t = d->mlx->skybox;
+	f.sky_img = f.t->addr;
+	f.a = atan2(ray->dir_y, ray->dir_x) * 180 / M_PI + 90;
+	f.a += f.a > 0 ? 0 : 360;
+	f.i = 0;
+	f.kk = f.a * f.t->height / 360;
+	if (f.kk >= f.t->height)
+		f.kk = f.t->height - 1;
+	f.offset = f.t->width * (int)f.kk;
+	while (f.i < ft->draw_s)
+	{
+		f.j = f.i * f.t->width / d->res_y;
+		img[ray->col + f.i * d->res_x] = f.sky_img[f.offset + f.j];
+		f.i++;
+	}
+	ft->mul = (ft->tex->height) * ft->tex_x;
+}
+
+int			ft_redder(int color, double dst)
+{
+	int		rgb[3];
+	double	fog_p;
+
+	if (dst > 30)
+		fog_p = 100;
+	else
+		fog_p = dst * 100 / 30;
+	fog_p = 100 - fog_p;
+	fog_p /= 100;
+	rgb[0] = (color / 65536);
+	rgb[1] = (color / 256) % 256 * fog_p;
+	rgb[2] = color % 256 * fog_p;
+	return (rgb[0] * 65536 + rgb[1] * 256 + rgb[2]);
+}
+
+void		ft_paint_col(t_ray *ray, t_data *data)
+{
+	t_paint_col	ft;
+
+	ft.img = (int *)data->mlx->screen_data;
+	ft.line_height = (int)(data->mlx->y / ray->perp_wall_dist);
+	ft.tex = ft_switch_texture(data, ray);
+	ft.draw_s = -ft.line_height / 2 + data->mlx->y / 2;
+	ft.draw_s = ft.draw_s < 0 ? 0 : ft.draw_s;
+	ft.draw_end = (ft.line_height) / 2 + data->mlx->y / 2;
+	ft.draw_end = ft.draw_end >= data->mlx->y ? data->mlx->y - 1 : ft.draw_end;
+	ft.wall_x = ray->side ? data->player->x + ray->perp_wall_dist * ray->dir_x :
+		data->player->y + ray->perp_wall_dist * ray->dir_y;
+	ft.tex_x = ft_tex_xcalc(ray, ft.tex, ft.wall_x);
+	ft.step = 1.0 * ft.tex->height / ft.line_height;
+	ft.tex_pos = (ft.draw_s - data->mlx->y / 2 + ft.line_height / 2) * ft.step;
+	ft_paint_sky_col(ray, data, &ft, ft.img);
+	while (ft.draw_s++ < ft.draw_end)
+	{
+		ft.tex_y = (int)ft.tex_pos & ((int)ft.tex->height - 1);
+		ft.tex_pos += ft.step;
+		ft.color = ft.tex->addr[ft.mul + ft.tex_y];
+		ft.img[ray->col + (ft.draw_s - 1) * data->res_x] = ft_redder(ft.color,
+				ray->perp_wall_dist);
+	}
+	while (ft.draw_end++ < data->mlx->y)
+		ft.img[ray->col + (ft.draw_end - 2) * data->res_x] = data->floor_color;
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   shoot.c                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/02/28 13:43:27 by eherrero          #+#    #+#             */
+/*   Updated: 2020/03/03 15:00:29 by eherrero         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "cub3d.h"
+
+double	ft_init_shoot_ray(t_ray *ray, t_try_shoot_params *p)
+{
+	double magnitude;
+
+	ray->x = p->x;
+	ray->y = p->y;
+	ray->dir_x = p->x_dest - p->x;
+	ray->dir_y = p->y_dest - p->y;
+	magnitude = sqrt(ray->dir_x * ray->dir_x + ray->dir_y * ray->dir_y);
+	ray->dir_x /= magnitude;
+	ray->dir_y /= magnitude;
+	ray->delta_dist_x = fabs(1 / ray->dir_x);
+	ray->delta_dist_y = fabs(1 / ray->dir_y);
+	ft_step_calc_2(ray, p->x, p->y);
+	return (magnitude);
+}
+
+int		ft_try_shoot(t_try_shoot_params *p)
+{
+	t_ray	ray;
+	double	magnitude;
+
+	magnitude = ft_init_shoot_ray(&ray, p);
+	if (fabs(atan2(p->x_dir, p->y_dir) - atan2(ray.dir_x, ray.dir_y)) > 0.8 ||
+			magnitude > 8)
+		return (0);
+	while (1)
+	{
+		ft_ray_side_dist(&ray);
+		if ((int)ray.x >= p->d->map_height || (int)ray.x < 0 ||
+			(int)ray.y >= p->d->map_width || (int)ray.y < 0 ||
+			p->d->collision_map[ray.x][ray.y])
+			return (0);
+		else if ((int)ray.x == (int)p->d->player->x &&
+				(int)ray.y == (int)p->d->player->y)
+			return (1);
+	}
+	return (0);
+}
+
+void	ft_shoot_succes(t_data *d, t_sprite *s)
+{
+	if (s->state == 1)
+	{
+		s->shoot++;
+		if (s->shoot == 75)
+		{
+			s->shoot = 25;
+			d->player->health--;
+		}
+	}
+	else
+		s->state = 1;
+}
+
+void	ft_shoot_fail(t_data *d, t_sprite *s, double f_x, double f_y)
+{
+	s->shoot = 0;
+	if (s->state == 1)
+	{
+		if (f_x >= 0.2 && f_y >= 0.2 && f_x <= 0.8 && f_y <= 0.8)
+		{
+			s->dir_x = d->arrow_map[(int)(s->x)][(int)(s->y)].dir_x;
+			s->dir_y = d->arrow_map[(int)(s->x)][(int)(s->y)].dir_y;
+		}
+		ft_sprite_advance(d, 0, d->player->mov_speed / 2, s);
+	}
+}
+
+void	ft_init_ts_param(t_data *d, t_sprite *s, t_try_shoot_params *p)
+{
+	p->d = d;
+	p->x_dir = s->dir_x;
+	p->y_dir = s->dir_y;
+	p->x = s->x;
+	p->y = s->y;
+	p->x_dest = d->player->x;
+	p->y_dest = d->player->y;
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   sprite_move.c                                      :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/02/28 13:40:35 by eherrero          #+#    #+#             */
+/*   Updated: 2020/03/03 15:00:36 by eherrero         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "cub3d.h"
+
+void	ft_sprite_advance(t_data *data, int code, double step, t_sprite *s)
+{
+	float	new_x;
+	float	new_y;
+
+	code = 1;
+	new_x = s->x + s->dir_x * step;
+	new_y = s->y + s->dir_y * step;
+	if (((int)new_x == (int)s->x && (int)new_y == (int)s->y) ||
+			!data->collision_map[(int)new_x][(int)new_y])
+	{
+		s->x = new_x;
+		s->y = new_y;
+	}
+}
+
+void	ft_activate_sprite(t_data *data, t_sprite *s)
+{
+	int i;
+
+	i = -1;
+	while (++i < data->sprites_num)
+	{
+		if (s->type == 1 && s->state == 0)
+		{
+			if (fabs(data->player->x - s->x) + fabs(data->player->y - s->y) < 5)
+				s->state = 1;
+		}
+	}
+}
+
+void	ft_move_soldiers(t_data *d)
+{
+	int					i;
+	t_sprite			*s;
+	double				f_x;
+	double				f_y;
+	t_try_shoot_params	param;
+
+	i = -1;
+	while (++i < d->sprites_num)
+	{
+		s = &d->sprite_buffer[i];
+		if (s->type == 1)
+		{
+			f_x = s->x - (int)s->x;
+			f_y = s->y - (int)s->y;
+			ft_init_ts_param(d, s, &param);
+			if (ft_try_shoot(&param))
+				ft_shoot_succes(d, s);
+			else
+				ft_shoot_fail(d, s, f_x, f_y);
+		}
+	}
+}
+
+int		ft_is_soldier(t_data *data, int x, int y)
+{
+	int			i;
+	t_sprite	s;
+
+	i = -1;
+	while (++i < data->sprites_num)
+	{
+		s = data->sprite_buffer[i];
+		if (s.type == 1)
+		{
+			if ((int)s.x == x && (int)s.y == y)
+				return (1);
+		}
+	}
+	return (0);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   sprite_paint.c                                     :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/02/25 15:00:20 by eherrero          #+#    #+#             */
+/*   Updated: 2020/03/04 13:27:17 by eherrero         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "cub3d.h"
+
+t_texture	*ft_get_sprite_texture(t_data *data, t_sprite *s)
+{
+	t_gst	ft;
+
+	ft.p = data->player;
+	ft.t = &data->sprite_tex_buffer[s->texture];
+	ft.t->offset = s->texture >= data->sprite_tex_num ? ft_cub_error() : 0;
+	if (s->type == 0)
+		return (ft.t);
+	ft.sector = 360 / ft.t->a_directions;
+	ft.a = ((atan2(s->dir_y, s->dir_x) * 180 / M_PI + 90)
+			- (atan2(ft.p->dir_y, ft.p->dir_x) * 180 / M_PI + 90));
+	ft.x_grid = ft_get_gridx(ft.a);
+	if (s->shoot)
+	{
+		ft.t = data->soldier_shoot;
+		if (s->shoot < 25)
+			ft.t->offset = 0;
+		else
+			ft.t->offset = s->shoot < 60 ? ft.t->width : ft.t->width * 2;
+		return (ft.t);
+	}
+	else
+		ft.t = s->state == 1 ? ft_select_moving_tex(data) : data->soldier_anim;
+	ft.x_grid += ft.x_grid <= 3 ? 4 : -4;
+	ft.t->offset = (int)(ft.x_grid * ft.t->width);
+	return (ft.t);
+}
+
+void		ft_paint_one_sprite_aux(t_data *data, t_sprite *sprite, t_pos *f)
+{
+	f->screen = (int*)data->mlx->screen_data;
+	f->t = ft_get_sprite_texture(data, sprite);
+	f->img = f->t->addr;
+	f->p = data->player;
+	f->s_x = sprite->x - f->p->x;
+	f->s_y = sprite->y - f->p->y;
+	f->i_t = 1.0 / (f->p->plane_x * f->p->dir_y - f->p->plane_y * f->p->dir_x);
+	f->tf_x = f->i_t * (f->p->dir_y * f->s_x - f->p->dir_x * f->s_y);
+	f->tf_y = f->i_t * (-f->p->plane_y * f->s_x + f->p->plane_x * f->s_y);
+	f->ss_x = (int)((data->res_x / 2) * (1 + f->tf_x / f->tf_y));
+	f->sprite_h = abs((int)(data->res_y / f->tf_y));
+	f->start_y = -(f->sprite_h) / 2 + data->res_y / 2;
+	f->start_y = f->start_y < 0 ? 0 : f->start_y;
+	f->end_y = f->sprite_h / 2 + data->res_y / 2;
+	f->end_y = f->end_y >= data->res_y ? data->res_y - 1 : f->end_y;
+	f->s_w = abs((int)(data->res_y / f->tf_y));
+	f->start_x = -f->s_w / 2 + f->ss_x;
+	f->start_x = f->start_x < 0 ? 0 : f->start_x;
+	f->end_x = f->s_w / 2 + f->ss_x;
+	f->end_x = f->end_x >= data->res_x ? data->res_x - 1 : f->end_x;
+	f->c = f->start_x - 1;
+}
+
+void		ft_paint_one_sprite(t_data *data, t_sprite *sprite)
+{
+	t_pos f;
+
+	ft_paint_one_sprite_aux(data, sprite, &f);
+	while (++f.c < f.end_x)
+	{
+		f.t_x = (int)(256 * (f.c - (-f.s_w / 2 + f.ss_x))
+				* f.t->width / f.s_w) / 256;
+		f.t_x = f.t_x >= f.t->width ? f.t->width - 1 : f.t_x;
+		f.t_x = f.t_x < 0 ? 0 : f.t_x;
+		f.y = f.start_y - 1;
+		if (f.tf_y > 0 && f.c > 0 && f.c < data->res_x &&
+				f.tf_y < data->buffer_z[f.c])
+			while (++f.y < f.end_y)
+			{
+				f.d = (f.y) * 256 - data->res_y * 128 + f.sprite_h * 128;
+				f.t_y = ((f.d * f.t->height) / f.sprite_h) / 256;
+				f.t_y = f.t_y >= f.t->height ? f.t->height - 1 : f.t_y;
+				f.t_y = f.t_y < 0 ? 0 : f.t_y;
+				f.col = f.img[f.t->offset + f.t->real_width * f.t_y + f.t_x];
+				if (f.col != 9961608)
+					f.screen[f.y * data->res_x + data->res_x - f.c] = ft_redder(
+							f.col, f.tf_y);
+			}
+	}
+}
+
+void		ft_sort_sprites(int *orden, double *dist, int num)
+{
+	int		i;
+	int		aux_i;
+	double	aux_d;
+	int		sorted;
+
+	sorted = 0;
+	while (!sorted)
+	{
+		i = -1;
+		sorted = 1;
+		while (++i < num - 1)
+		{
+			if (dist[i] < dist[i + 1])
+			{
+				aux_i = orden[i];
+				orden[i] = orden[i + 1];
+				orden[i + 1] = aux_i;
+				aux_d = dist[i];
+				dist[i] = dist[i + 1];
+				dist[i + 1] = aux_d;
+				sorted = 0;
+			}
+		}
+	}
+}
+
+void		ft_paint_sprites(t_data *data)
+{
+	int			orden[data->sprites_num];
+	double		distancias[data->sprites_num];
+	t_player	*p;
+	t_sprite	*sprite;
+	int			i;
+
+	p = data->player;
+	sprite = data->sprite_buffer;
+	i = -1;
+	while (++i < data->sprites_num)
+	{
+		orden[i] = i;
+		distancias[i] = ((p->x - sprite[i].x) * (p->x - sprite[i].x)
+				+ (p->y - sprite[i].y) * (p->y - sprite[i].y));
+	}
+	ft_sort_sprites(orden, distancias, data->sprites_num);
+	i = 0;
+	while (i < data->sprites_num)
+	{
+		ft_paint_one_sprite(data, sprite + orden[i]);
+		i++;
+	}
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   sprites_1.c                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/02/25 11:55:24 by eherrero          #+#    #+#             */
+/*   Updated: 2020/03/04 17:58:07 by eherrero         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "cub3d.h"
+
+int				ft_sprite_extra_data_precheck(char *str, t_sprite *s, int i)
+{
+	while (ft_isdigit(str[i]))
+		i++;
+	if (!ft_isspace(str[i]))
+		ft_cub_error();
+	while (ft_isspace(str[i]))
+		i++;
+	s->type = str[i] == 'I' ? 0 : 1;
+	if (str[i] != 'I' && str[i] != 'H')
+		ft_cub_error();
+	if (s->type == 0)
+		return (-1);
+	i++;
+	return (i);
+}
+
+void			ft_sprite_extra_data(char *str, t_sprite *sprite, int i)
+{
+	i = ft_sprite_extra_data_precheck(str, sprite, i);
+	if (i < 0)
+		return ;
+	if (!ft_isspace(str[i]))
+		ft_cub_error();
+	while (ft_isspace(str[i]))
+		i++;
+	if (!ft_isdigit(str[i]) && str[i] != '-')
+		ft_cub_error();
+	sprite->dir_x = ft_atoi(str + i);
+	while (ft_isdigit(str[i]) || str[i] == '-')
+		i++;
+	if (!ft_isspace(str[i]))
+		ft_cub_error();
+	while (ft_isspace(str[i]))
+		i++;
+	if (!ft_isdigit(str[i]) && str[i] != '-')
+		ft_cub_error();
+	sprite->dir_y = ft_atoi(str + i);
+}
+
+int				ft_set_sprite_data_precheck(char *str, t_sprite *sprite)
+{
+	int i;
+
+	i = 1;
+	while (ft_isspace(str[i]))
+		i++;
+	if (!ft_isdigit(str[i]))
+		ft_cub_error();
+	sprite->x = (double)ft_atoi(str + i) + 0.5;
+	while (ft_isdigit(str[i]))
+		i++;
+	if (!ft_isspace(str[i]))
+		ft_cub_error();
+	while (ft_isspace(str[i]))
+		i++;
+	if (!ft_isdigit(str[i]))
+		ft_cub_error();
+	sprite->y = (double)ft_atoi(str + i) + 0.5;
+	while (ft_isdigit(str[i]))
+		i++;
+	if (!ft_isspace(str[i]))
+		ft_cub_error();
+	return (i);
+}
+
+void			ft_set_sprite_data(char *str, t_sprite *sprite)
+{
+	int i;
+
+	i = ft_set_sprite_data_precheck(str, sprite);
+	while (ft_isspace(str[i]))
+		i++;
+	if (!ft_isdigit(str[i]))
+		ft_cub_error();
+	sprite->texture = ft_atoi(str + i);
+	ft_sprite_extra_data(str, sprite, i);
+	sprite->comprobador = 15;
+	sprite->back_x = sprite->x;
+	sprite->back_y = sprite->y;
+	sprite->dir_x = 0;
+	sprite->dir_y = 1;
+	sprite->state = 0;
+}
+
+int				ft_set_new_sprite(char *str, t_data *data)
+{
+	t_sprite	*new_buff;
+	char		*old_buff;
+	int			i;
+	int			end;
+	int			old_size;
+
+	i = -1;
+	end = sizeof(t_sprite) * data->sprites_num;
+	data->sprites_num++;
+	new_buff = (t_sprite*)malloc(data->sprites_num * sizeof(t_sprite));
+	old_buff = (char*)data->sprite_buffer;
+	old_size = sizeof(t_sprite) * (data->sprites_num - 1);
+	if (old_buff)
+	{
+		free(new_buff);
+		new_buff = ft_realloc(old_buff, old_size, old_size + sizeof(t_sprite));
+	}
+	data->sprite_buffer = new_buff;
+	ft_set_sprite_data(str, &new_buff[data->sprites_num - 1]);
+	return (1);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   sprites_2.c                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/02/25 11:57:04 by eherrero          #+#    #+#             */
+/*   Updated: 2020/03/03 15:01:51 by eherrero         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "cub3d.h"
+
+int				ft_set_animation_data_precheck(char *str, t_texture *t)
+{
+	int i;
+
+	i = 2;
+	if (!ft_isspace(str[i]))
+		ft_cub_error();
+	while (ft_isspace(str[i]))
+		i++;
+	if (!ft_isdigit(str[i]))
+		ft_cub_error();
+	t->a_directions = ft_atoi(str + i);
+	while (ft_isdigit(str[i]))
+		i++;
+	if (!ft_isspace(str[i]))
+		ft_cub_error();
+	while (ft_isspace(str[i]))
+		i++;
+	if (!ft_isdigit(str[i]))
+		ft_cub_error();
+	t->a_states = ft_atoi(str + i);
+	return (i);
+}
+
+void			ft_set_animation_data(char *str, t_data *data, t_texture *t)
+{
+	int i;
+
+	t->animated = 1;
+	i = ft_set_animation_data_precheck(str, t);
+	while (ft_isdigit(str[i]))
+		i++;
+	if (!ft_isspace(str[i]))
+		ft_cub_error();
+	while (ft_isspace(str[i]))
+		i++;
+	if (!ft_isalnum(str[i]))
+		ft_cub_error();
+	ft_init_texture(data->mlx, t, str + i);
+	t->width = t->real_width / t->a_directions;
+	t->height = t->real_height / t->a_states;
+}
+
+void			ft_set_sprite_tex_data(char *str, t_data *data, t_texture *t)
+{
+	int i;
+
+	i = 1;
+	t->a_directions = 1;
+	t->a_states = 1;
+	t->animated = 0;
+	while (ft_isspace(str[i]))
+		i++;
+	if (!ft_isalnum(str[i]))
+		ft_cub_error();
+	ft_init_texture(data->mlx, t, str + i);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   texture_initializer.c                              :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/03/03 16:03:22 by eherrero          #+#    #+#             */
+/*   Updated: 2020/03/04 18:41:28 by eherrero         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "cub3d.h"
+
+char	*ft_init_texture_aux(t_init_texture *p, t_texture *t)
+{
+	char *line;
+
+	p->e = 1;
+	p->fd = open(p->path, O_RDONLY);
+	if (get_next_line(p->fd, &line) < 0)
+		ft_other_error("error loading texture", p->path);
+	free(line);
+	get_next_line(p->fd, &line);
+	free(line);
+	get_next_line(p->fd, &line);
+	free(line);
+	get_next_line(p->fd, &line);
+	p->fd_old = p->fd;
+	p->fd = 0;
+	while (!ft_isdigit(line[p->fd]))
+		p->fd++;
+	t->width = ft_atoi(line + p->fd);
+	while (ft_isdigit(line[p->fd]))
+		p->fd++;
+	while (!ft_isdigit(line[p->fd]))
+		p->fd++;
+	t->height = ft_atoi(line + p->fd);
+	return (line);
+}
+
+void	ft_init_texture(t_mlx *mlx, t_texture *t, char *path)
+{
+	char			*line;
+	t_init_texture	p;
+
+	p.path = path;
+	line = ft_init_texture_aux(&p, t);
+	t->bpp = 4;
+	t->size_line = t->bpp * t->width;
+	p.w = (int)t->width;
+	p.h = (int)t->height;
+	t->img = mlx_xpm_file_to_image(mlx->ptr, path, &p.w, &p.h);
+	t->addr = (int*)mlx_get_data_addr(t->img, &(t->bpp),
+			&(t->size_line), &p.e);
+	free(line);
+	while (get_next_line(p.fd_old, &line) > 0)
+		free(line);
+	free(line);
+	close(p.fd_old);
+	t->real_width = t->width;
+	t->real_height = t->height;
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   texture_selector.c                                 :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2020/02/25 14:58:42 by eherrero          #+#    #+#             */
+/*   Updated: 2020/03/03 15:02:26 by eherrero         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "cub3d.h"
+
+t_texture	*ft_switch_texture(t_data *data, t_ray *ray)
+{
+	int item;
+
+	if (ray->side == 0)
+		item = ray->dir_x > 0 ? 1 : 2;
+	else
+		item = ray->dir_y > 0 ? 3 : 4;
+	if (item == 1)
+		return (data->mlx->n_img);
+	if (item == 2)
+		return (data->mlx->s_img);
+	if (item == 3)
+		return (data->mlx->e_img);
+	return (data->mlx->w_img);
+}
+
+int			ft_tex_xcalc(t_ray *ray, t_texture *tex, double wall_x)
+{
+	int ret;
+
+	ret = (int)(((wall_x - floor(wall_x)) * (double)(tex->width)));
+	if (!ray->side && ray->dir_x > 0)
+		ret = tex->width - ret - 1;
+	if (ray->side && ray->dir_y < 0)
+		ret = tex->width - ret - 1;
+	return (ret);
+}
+
+int			ft_get_gridx(double a)
+{
+	double	sector;
+
+	sector = 360 / 8;
+	a += sector / 2;
+	if ((int)(a * 10) >= 0)
+		return ((int)(a / sector));
+	a *= -1;
+	return (7 - (int)(a / sector));
+}
+
+int			ft_get_gridy(t_data *data, t_sprite *s, int states)
+{
+	int n;
+
+	if (!s->moved)
+		return (0);
+	n = data->animation_cycle / (states - 1);
+	return (data->animation_num / n + 1);
+}
+
+t_texture	*ft_select_moving_tex(t_data *data)
+{
+	int n;
+
+	n = data->animation_cycle / 4;
+	n = data->animation_num / n + 1;
+	return (&data->soldier_anim[n]);
+	if (n == 0)
+		return (&data->soldier_anim[1]);
+	if (n == 1)
+		return (&data->soldier_anim[2]);
+	if (n == 2)
+		return (&data->soldier_anim[3]);
+	if (n == 3)
+		return (&data->soldier_anim[4]);
+	return (&data->soldier_anim[0]);
+}
