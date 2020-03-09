@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/02/25 11:46:58 by eherrero          #+#    #+#             */
-/*   Updated: 2020/03/05 14:57:38 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/03/09 16:46:00 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,15 +17,12 @@ int				ft_first_line_check(int *line, int **tab, char *str, t_data *d)
 	t_first_line_check	ft;
 	int					*row;
 
-	ft.i = 0;
+	ft.i = -1;
 	ft.count = 0;
-	str[ft.i] = str[ft.i] != '1' ? ft_map_error() : str[ft.i];
-	while (str[ft.i])
-	{
+	str[0] = str[0] != '1' && str[0] != ' ' ? ft_map_error() : str[0];
+	while (str[++ft.i])
 		if (str[ft.i] == '1' || str[ft.i] == ' ')
 			ft.count++;
-		ft.i++;
-	}
 	row = (int *)malloc(sizeof(int) * ft.count);
 	d->map_width = !row ? ft_memory_error() : ft.count;
 	tab[0] = row;
@@ -89,7 +86,7 @@ int				ft_check_line(int *line, int **tab, char *str, t_data *data)
 	write(1, "\n", 1);
 	if (str[0] != '1')
 	{
-		if (*line && str[0] == ' ')
+		if (*line || str[0] == ' ')
 			return (ft_check_map_line(line, tab, str, data));
 		else
 			return (!(*line) ? ft_check_info_line(str, data) : -1);

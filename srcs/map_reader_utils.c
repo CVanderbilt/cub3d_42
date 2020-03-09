@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/02/25 11:53:29 by eherrero          #+#    #+#             */
-/*   Updated: 2020/03/09 15:05:38 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/03/09 15:25:23 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,7 @@ int				ft_check_full(char *str, char c)
 
 	i = -1;
 	while (str[++i])
-		if (str[i] != c || str[i] == ' ')
+		if (str[i] != c && str[i] != ' ')
 			return (0);
 	return (1);
 }
