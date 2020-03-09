@@ -6,7 +6,7 @@
 #    By: eherrero <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2020/03/03 14:32:58 by eherrero          #+#    #+#              #
-#    Updated: 2020/03/09 14:07:45 by eherrero         ###   ########.fr        #
+#    Updated: 2020/03/09 16:51:04 by eherrero         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -50,6 +50,8 @@ $(NAME):
 	$(CC) $(CFLAGS) -o $(NAME) $(SRC) 
 
 all: $(NAME)
+
+bonus: $(NAME)
 
 sanitize:
 	$(CC) -g $(CFLAGS) -o $(NAME) $(SRC) -fsanitize=address 
