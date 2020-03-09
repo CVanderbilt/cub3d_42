@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/02/25 11:55:24 by eherrero          #+#    #+#             */
-/*   Updated: 2020/03/04 17:58:07 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/03/09 13:47:29 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,10 +20,13 @@ int				ft_sprite_extra_data_precheck(char *str, t_sprite *s, int i)
 		ft_cub_error();
 	while (ft_isspace(str[i]))
 		i++;
-	s->type = str[i] == 'I' ? 0 : 1;
-	if (str[i] != 'I' && str[i] != 'H')
+	if (str[i] == 'I')
+		s->type = 0;
+	else
+		s->type = str[i] == 'H' ? 1 : 2;
+	if (str[i] != 'I' && str[i] != 'H' && str[i] != 'P')
 		ft_cub_error();
-	if (s->type == 0)
+	if (s->type == 0 || s->type == 2)
 		return (-1);
 	i++;
 	return (i);

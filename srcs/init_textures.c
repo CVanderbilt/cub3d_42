@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/03/03 16:04:55 by eherrero          #+#    #+#             */
-/*   Updated: 2020/03/03 16:05:45 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/03/09 14:25:19 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,15 +31,17 @@ void	ft_init_textures(t_data *data)
 	mlx->s_img = (t_texture*)malloc(sizeof(t_texture));
 	mlx->w_img = (t_texture*)malloc(sizeof(t_texture));
 	mlx->e_img = (t_texture*)malloc(sizeof(t_texture));
+	data->void_sprite = (t_texture*)malloc(sizeof(t_texture));
 	mlx->skybox = (t_texture*)malloc(sizeof(t_texture));
 	if (!mlx->n_img || !mlx->s_img || !mlx->e_img || !mlx->w_img
-			|| !mlx->skybox)
+			|| !mlx->skybox || !data->void_sprite)
 		ft_memory_error();
 	ft_init_texture(mlx, mlx->n_img, data->n_texture);
 	ft_init_texture(mlx, mlx->s_img, data->s_texture);
 	ft_init_texture(mlx, mlx->e_img, data->e_texture);
 	ft_init_texture(mlx, mlx->w_img, data->w_texture);
 	ft_init_texture(mlx, mlx->skybox, "assets/textures/skybox.xpm");
+	ft_init_texture(mlx, data->void_sprite, "assets/sprites/void.xpm");
 }
 
 void	ft_init_extra_animations(t_data *data)

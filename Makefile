@@ -6,7 +6,7 @@
 #    By: eherrero <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2020/03/03 14:32:58 by eherrero          #+#    #+#              #
-#    Updated: 2020/03/06 17:34:26 by eherrero         ###   ########.fr        #
+#    Updated: 2020/03/09 14:07:45 by eherrero         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -32,7 +32,7 @@ UTILS=srcs/ft_calloc.c srcs/ft_realloc.c srcs/ft_in_set.c srcs/ft_strcmp.c \
 	  srcs/ft_atoi.c srcs/ft_atoi_rgb.c srcs/ft_isalnum.c srcs/ft_isdigit.c \
 	  srcs/ft_isspace.c srcs/get_next_line.c srcs/get_next_line_utils.c \
 	  srcs/ft_putstr.c srcs/ft_strjoin.c srcs/ft_itoa.c srcs/ft_check_extension.c\
-	  srcs/ft_open_check.c
+	  srcs/ft_open_check.c srcs/ft_check_pickup.c
 
 RENDER=srcs/render.c srcs/render_utils.c srcs/texture_selector.c srcs/sprite_paint.c
 

@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/03/03 16:52:54 by eherrero          #+#    #+#             */
-/*   Updated: 2020/03/05 13:58:45 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/03/09 14:22:26 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -124,6 +124,7 @@ typedef struct		s_data
 	t_texture		*soldier_shoot;
 	t_texture		*hud;
 	t_texture		weapon[5];
+	t_texture		*void_sprite;
 	int				shooting;
 	int				weapon_state;
 	t_texture		numbers[10];

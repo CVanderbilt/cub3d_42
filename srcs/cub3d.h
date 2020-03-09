@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/03/03 17:03:00 by eherrero          #+#    #+#             */
-/*   Updated: 2020/03/05 14:44:59 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/03/09 13:57:56 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,7 @@ char		*ft_strjoin(char const *s1, char const *s2);
 char		*ft_itoa(int n);
 int			ft_check_extension(char *str, char *ext);
 int			ft_open_check(char *map, int flags);
+void		ft_check_pickup(t_data *data);
 /*
 **					map_reader
 */

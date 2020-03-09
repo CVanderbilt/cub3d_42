@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/02/28 13:42:01 by eherrero          #+#    #+#             */
-/*   Updated: 2020/03/03 15:00:21 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/03/09 13:52:46 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -106,5 +106,6 @@ int		ft_move(t_data *data, t_player *player)
 		moved += ft_player_rotate(player, a, 0);
 	if (player->rotating_left)
 		moved += ft_player_rotate(player, a, 1);
+	ft_check_pickup(data);
 	return (moved);
 }

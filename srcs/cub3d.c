@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/03/03 16:02:32 by eherrero          #+#    #+#             */
-/*   Updated: 2020/03/05 14:36:54 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/03/09 15:05:51 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,8 @@ int		main(int argc, char **argv)
 	if (!ft_check_extension(argv[1], ".cub"))
 		ft_other_error("wrong .cub", argv[1]);
 	ft_init_data(&data, argv[1], 0.05, 0.15);
+	if ((int)data.player->x < 0 || (int)data.player->y < 0)
+		ft_cub_error();
 	p = data.player;
 	ft_init_soldier(&data);
 	ft_render(&data, data.mlx, data.player, data.map);

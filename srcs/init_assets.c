@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/03/03 16:05:55 by eherrero          #+#    #+#             */
-/*   Updated: 2020/03/05 14:46:22 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/03/09 14:58:45 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,8 +14,8 @@
 
 void	ft_init_player(t_player *player, double r_speed, double m_speed)
 {
-	player->x = 0;
-	player->y = 0;
+	player->x = -1;
+	player->y = -1;
 	player->dir_x = 0;
 	player->dir_y = 0;
 	player->plane_x = 0;

@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/02/25 15:00:20 by eherrero          #+#    #+#             */
-/*   Updated: 2020/03/04 13:27:17 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/03/09 14:21:49 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ t_texture	*ft_get_sprite_texture(t_data *data, t_sprite *s)
 	ft.p = data->player;
 	ft.t = &data->sprite_tex_buffer[s->texture];
 	ft.t->offset = s->texture >= data->sprite_tex_num ? ft_cub_error() : 0;
-	if (s->type == 0)
+	if (s->type == 0 || s->type == 2)
 		return (ft.t);
 	ft.sector = 360 / ft.t->a_directions;
 	ft.a = ((atan2(s->dir_y, s->dir_x) * 180 / M_PI + 90)
@@ -44,7 +44,10 @@ t_texture	*ft_get_sprite_texture(t_data *data, t_sprite *s)
 void		ft_paint_one_sprite_aux(t_data *data, t_sprite *sprite, t_pos *f)
 {
 	f->screen = (int*)data->mlx->screen_data;
-	f->t = ft_get_sprite_texture(data, sprite);
+	if (sprite->type == 3)
+		f->t = data->void_sprite;
+	else
+		f->t = ft_get_sprite_texture(data, sprite);
 	f->img = f->t->addr;
 	f->p = data->player;
 	f->s_x = sprite->x - f->p->x;

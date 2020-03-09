@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/02/25 11:48:42 by eherrero          #+#    #+#             */
-/*   Updated: 2020/03/05 14:50:56 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/03/09 14:35:42 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,8 +35,8 @@ int				ft_check_r(char *str, t_data *data)
 	data->res_y = ft_atoi(str + i);
 	if (data->res_x <= 0 || (data->res_y <= 0))
 		ft_cub_error();
-	data->res_x = data->res_x > 1024 ? 1024 : data->res_x;
-	data->res_y = data->res_y > 1024 ? 1024 : data->res_y;
+	data->res_x = data->res_x > 2560 ? 2560 : data->res_x;
+	data->res_y = data->res_y > 1440 ? 1440 : data->res_y;
 	return (0);
 }
 
@@ -69,7 +69,7 @@ int				ft_check_t(char *str, t_data *data)
 
 	old_buf = data->sprite_tex_buffer;
 	old_size = data->sprite_tex_num * sizeof(t_texture);
-	if (!ft_isspace(str[1]) && (str[1] != 'A' || !ft_isspace(str[2])))
+	if (!ft_isspace(str[1]))
 		ft_cub_error();
 	data->sprite_tex_num += 1;
 	new_buf = (t_texture*)malloc(sizeof(t_texture));

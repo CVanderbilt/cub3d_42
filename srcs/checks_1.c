@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/02/25 11:47:41 by eherrero          #+#    #+#             */
-/*   Updated: 2020/03/05 14:08:07 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/03/09 13:26:39 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,7 +58,7 @@ int				ft_check_s(char *str, t_data *data)
 		return (ft_set_dir_texture(str, 2, &(data->s_texture)));
 	}
 	if (str[1])
-		return (ft_set_new_sprite(str, data));
+		return (ft_check_t(str, data));
 	ft_cub_error();
 	return (0);
 }

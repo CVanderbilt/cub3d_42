@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/02/28 13:37:52 by eherrero          #+#    #+#             */
-/*   Updated: 2020/03/04 11:55:07 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/03/09 14:18:14 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,8 +91,6 @@ void	ft_update_extra_maps(t_data *data)
 	y = -1;
 	s = data->sprite_buffer;
 	while (++y < data->sprites_num)
-	{
-		c_map[(int)s[y].x][(int)s[y].y] = 2;
-	}
+		c_map[(int)s[y].x][(int)s[y].y] = s[y].type >= 2 ? 0 : 2;
 	ft_update_arrow_map(data);
 }

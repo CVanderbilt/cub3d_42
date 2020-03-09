@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/02/28 13:36:54 by eherrero          #+#    #+#             */
-/*   Updated: 2020/03/03 15:00:05 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/03/09 14:41:17 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,6 +47,7 @@ void	ft_free_textures(t_data *data)
 	ft_free_texture(data, data->mlx->e_img);
 	ft_free_texture(data, data->mlx->w_img);
 	ft_free_texture(data, data->mlx->skybox);
+	ft_free_texture(data, data->void_sprite);
 	free(data->mlx->n_img);
 	free(data->mlx->s_img);
 	free(data->mlx->e_img);

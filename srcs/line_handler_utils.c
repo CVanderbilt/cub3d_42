@@ -6,7 +6,7 @@
 /*   By: eherrero <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/03/04 17:55:23 by eherrero          #+#    #+#             */
-/*   Updated: 2020/03/04 18:07:46 by eherrero         ###   ########.fr       */
+/*   Updated: 2020/03/09 13:27:51 by eherrero         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,7 +49,7 @@ int				ft_check_info_line(char *str, t_data *data)
 	if (str[0] == 'C' || str[0] == 'F')
 		return (ft_check_c(str, data));
 	if (str[0] == 'T')
-		return (ft_check_t(str, data));
+		return (ft_set_new_sprite(str, data));
 	if (!str[0])
 		return (0);
 	return (ft_cub_error());
